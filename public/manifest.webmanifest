@@ -1,0 +1,28 @@
+{
+  "name": "MDink Solutions",
+  "short_name": "MDink",
+  "description": "حلول رقمية ومواقع احترافية وإدارة سوشيال ميديا للأطباء والعيادات والمراكز الطبية.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "dir": "rtl",
+  "lang": "ar",
+  "background_color": "#071126",
+  "theme_color": "#1d3fb3",
+  "categories": ["business", "medical", "productivity"],
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
