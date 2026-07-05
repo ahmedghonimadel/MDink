@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { ImageUpload } from "@/components/ImageUpload";
+import { VideoUpload } from "@/components/VideoUpload";
 import { HomeLivePreview } from "./-home-live-preview";
 
 export const Route = createFileRoute("/_authenticated/admin/home")({
@@ -321,14 +322,15 @@ function AdminHome() {
 
           <Divider>فيديو قسم المنظومة الرقمية</Divider>
           <p className="mb-2 text-sm text-muted-foreground">
-            رابط فيديو (YouTube / Shorts / Vimeo / MP4) يظهر في قسم "المنظومة الرقمية" بدل الصندوق الثابت. اتركه فارغًا لعرض المحتوى النصي.
+            ارفع فيديو من جهازك أو الصق رابط (YouTube / Shorts / Vimeo / MP4) يظهر في قسم "المنظومة الرقمية" بدل الصندوق الثابت. اتركه فارغًا لعرض المحتوى النصي.
           </p>
+          <VideoUpload
+            label="فيديو المنظومة"
+            value={c.system_video_url || ""}
+            onChange={(v) => set("system_video_url", v)}
+            folder="home"
+          />
           <Grid>
-            <Field
-              label="رابط فيديو المنظومة"
-              v={c.system_video_url || ""}
-              on={(v) => set("system_video_url", v)}
-            />
             <Field
               label="عنوان الفيديو (اختياري)"
               v={c.system_video_title || ""}
@@ -425,6 +427,26 @@ function AdminHome() {
             <Field label="زر التحدث عربي" v={c.talk_ar} on={(v) => set("talk_ar", v)} />
             <Field label="Talk button English" v={c.talk_en} on={(v) => set("talk_en", v)} />
           </Grid>
+
+          <Divider>فيديو تعريفي (قسم لماذا MDink)</Divider>
+          <p className="mb-2 text-sm text-muted-foreground">
+            ارفع فيديو من جهازك أو الصق رابط (YouTube / Shorts / Vimeo / MP4). يظهر بدل الصندوق الثابت "سيظهر هنا فيديو". اتركه فارغًا لعرض الصندوق الافتراضي.
+          </p>
+          <div className="grid gap-6 md:grid-cols-2">
+            <VideoUpload
+              label="فيديو لماذا MDink"
+              value={c.why_video_url || ""}
+              onChange={(v) => set("why_video_url", v)}
+              folder="home"
+            />
+            <ImageUpload
+              label="صورة مصغّرة للفيديو (اختياري — للروابط)"
+              value={c.why_video_poster || ""}
+              onChange={(v) => set("why_video_poster", v)}
+              folder="home"
+            />
+          </div>
+
           <Divider>قائمة المميزات</Divider>
           <BilingualListEditor
             items={arr("advantages_json")}

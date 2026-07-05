@@ -465,13 +465,10 @@ function HomePage() {
             className="relative overflow-hidden rounded-3xl border border-border bg-background shadow-card"
           >
             {c.why_video_url ? (
-              <video
-                src={c.why_video_url}
-                poster={c.why_video_poster || undefined}
-                controls
-                playsInline
-                className="h-full w-full bg-black object-contain"
-                style={{ aspectRatio: "16 / 9" }}
+              <VideoPlayer
+                url={c.why_video_url}
+                thumbnail={c.why_video_poster || undefined}
+                title={L("why_title")}
               />
             ) : (
               <div
