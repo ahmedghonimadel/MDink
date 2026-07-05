@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useState, useRef, useMemo } from "react";
+import { useState, useRef, useMemo, useEffect } from "react";
 import { MarketingLayout } from "@/components/MarketingLayout";
 import {
   Star,
@@ -469,14 +469,29 @@ function VideoCarousel({
   locale: string;
 }) {
   const [idx, setIdx] = useState(0);
+  const [hovering, setHovering] = useState(false);
+  const [videoPlaying, setVideoPlaying] = useState(false);
   const touchX = useRef<number | null>(null);
   const active = videos[idx];
-  const go = (d: number) => setIdx((p) => (p + d + videos.length) % videos.length);
+  const goTo = (i: number) => {
+    setIdx(((i % videos.length) + videos.length) % videos.length);
+    setVideoPlaying(false);
+  };
+  const go = (d: number) => goTo(idx + d);
+
+  // اللف التلقائي — يقف عند الوقوف بالماوس أو أثناء تشغيل فيديو حتى لا يقطع المشاهدة
+  useEffect(() => {
+    if (videos.length <= 1 || hovering || videoPlaying) return;
+    const t = setInterval(() => setIdx((p) => (p + 1) % videos.length), 6000);
+    return () => clearInterval(t);
+  }, [videos.length, hovering, videoPlaying]);
 
   return (
     <div className="mt-8">
       <div
         className="relative mx-auto max-w-md"
+        onMouseEnter={() => setHovering(true)}
+        onMouseLeave={() => setHovering(false)}
         onTouchStart={(e) => (touchX.current = e.touches[0].clientX)}
         onTouchEnd={(e) => {
           if (touchX.current === null) return;
@@ -493,6 +508,8 @@ function VideoCarousel({
               url={active.media_url || ""}
               thumbnail={active.thumbnail_url}
               title={pick(active.title_ar, active.title_en)}
+              onPlayStateChange={setVideoPlaying}
+              onEnded={() => go(1)}
             />
           </div>
           <div className="p-5 pt-1 text-center">
@@ -546,7 +563,7 @@ function VideoCarousel({
             <button
               key={i}
               type="button"
-              onClick={() => setIdx(i)}
+              onClick={() => goTo(i)}
               aria-label={`${i + 1}`}
               className={`h-2.5 rounded-full transition-all ${
                 i === idx ? "w-6 bg-brand" : "w-2.5 bg-border hover:bg-brand/40"

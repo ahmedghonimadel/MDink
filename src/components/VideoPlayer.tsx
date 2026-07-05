@@ -10,6 +10,10 @@ interface VideoPlayerProps {
   /** فرض الاتجاه (يتجاوز الاكتشاف التلقائي) */
   orientation?: "horizontal" | "vertical";
   className?: string;
+  /** يُستدعى عند انتهاء تشغيل فيديو MP4 (للانتقال للتالي في السلايدر) */
+  onEnded?: () => void;
+  /** يُستدعى عند بدء/إيقاف التشغيل (لإيقاف اللف التلقائي أثناء المشاهدة) */
+  onPlayStateChange?: (playing: boolean) => void;
 }
 
 /**
@@ -25,6 +29,8 @@ export function VideoPlayer({
   title,
   orientation,
   className = "",
+  onEnded,
+  onPlayStateChange,
 }: VideoPlayerProps) {
   const [playing, setPlaying] = useState(false);
   const v = parseVideoUrl(url);
@@ -58,6 +64,12 @@ export function VideoPlayer({
           poster={poster || undefined}
           controls
           playsInline
+          onPlay={() => onPlayStateChange?.(true)}
+          onPause={() => onPlayStateChange?.(false)}
+          onEnded={() => {
+            onPlayStateChange?.(false);
+            onEnded?.();
+          }}
           className="h-full w-full object-contain"
         />
       </div>
@@ -78,7 +90,10 @@ export function VideoPlayer({
       ) : (
         <button
           type="button"
-          onClick={() => setPlaying(true)}
+          onClick={() => {
+            setPlaying(true);
+            onPlayStateChange?.(true);
+          }}
           className="group absolute inset-0 flex h-full w-full items-center justify-center"
           aria-label={title ? `تشغيل: ${title}` : "تشغيل الفيديو"}
         >
