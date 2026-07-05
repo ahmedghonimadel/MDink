@@ -211,6 +211,7 @@ function HomePage() {
         merged.hero_subtitle_en = (hero.content_json?.subtitle_en) ?? merged.hero_subtitle_en;
         if (hero.content_json?.badge_ar) merged.badge_ar = hero.content_json.badge_ar;
         if (hero.content_json?.image_url) merged.hero_image = hero.content_json.image_url;
+        if (hero.content_json?.bg_image_url) merged.hero_bg_image = hero.content_json.bg_image_url;
         if (hero.content_json?.cta_primary_ar) merged.primary_cta_ar = hero.content_json.cta_primary_ar;
       }
       if (why) {

@@ -73,6 +73,7 @@ function AdminHome() {
         merged.hero_title_ar = hero.title ?? merged.hero_title_ar;
         merged.hero_subtitle_ar = hero.subtitle ?? merged.hero_subtitle_ar;
         if (hero.content_json?.image_url) merged.hero_image = hero.content_json.image_url;
+        if (hero.content_json?.bg_image_url) merged.hero_bg_image = hero.content_json.bg_image_url;
       }
       if (why) {
         merged.why_title_ar = why.title ?? merged.why_title_ar;
@@ -105,6 +106,7 @@ function AdminHome() {
       content_json: {
         ...(c.badge_ar ? { badge_ar: c.badge_ar } : {}),
         ...(c.hero_image ? { image_url: c.hero_image } : {}),
+        ...(c.hero_bg_image ? { bg_image_url: c.hero_bg_image } : {}),
         title_en: c.hero_title_en ?? null,
         subtitle_en: c.hero_subtitle_en ?? null,
       },
