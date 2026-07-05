@@ -83,6 +83,20 @@ function AdminHome() {
         if (why.content_json?.why_video_poster)
           merged.why_video_poster = why.content_json.why_video_poster;
       }
+      const system = bySection["system"];
+      if (system) {
+        merged.system_title_ar = system.title ?? merged.system_title_ar;
+        merged.system_intro_ar = system.subtitle ?? merged.system_intro_ar;
+        if (system.video_url) merged.system_video_url = system.video_url;
+        if (system.content_json?.title_en) merged.system_title_en = system.content_json.title_en;
+        if (system.content_json?.intro_en) merged.system_intro_en = system.content_json.intro_en;
+        if (system.content_json?.video_title)
+          merged.system_video_title = system.content_json.video_title;
+        if (system.content_json?.video_thumbnail)
+          merged.system_video_thumbnail = system.content_json.video_thumbnail;
+        if (Array.isArray(system.content_json?.items))
+          merged.system_items_json = system.content_json.items;
+      }
       return merged;
     },
   });
