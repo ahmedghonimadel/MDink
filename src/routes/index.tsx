@@ -464,10 +464,10 @@ function HomePage() {
             delay={150}
             className="relative overflow-hidden rounded-3xl border border-border bg-background shadow-card"
           >
-            {c.why_video_url ? (
+            {c.why_video_url || c.system_video_url ? (
               <VideoPlayer
-                url={c.why_video_url}
-                thumbnail={c.why_video_poster || undefined}
+                url={c.why_video_url || c.system_video_url}
+                thumbnail={c.why_video_poster || c.system_video_thumbnail || undefined}
                 title={L("why_title")}
               />
             ) : (
@@ -491,7 +491,8 @@ function HomePage() {
     ),
 
     system: () => {
-      const videoUrl = c.system_video_url;
+      // الفيديو التعريفي يظهر في قسم "ليه MDink" — هذا القسم كلام فقط
+      const videoUrl = "";
       return (
         <section key="system" className="mx-auto max-w-7xl px-4 py-20 sm:px-6">
           <Reveal>
