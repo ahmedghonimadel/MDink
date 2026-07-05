@@ -503,7 +503,7 @@ function HomePage() {
               {L("system_intro")}
             </p>
           </Reveal>
-          <div className="mt-8 grid items-center gap-8 lg:grid-cols-2">
+          <div className={`mt-8 grid items-center gap-8 ${videoUrl ? "lg:grid-cols-2" : ""}`}>
             {videoUrl ? (
               <Reveal>
                 <VideoPlayer
@@ -512,11 +512,7 @@ function HomePage() {
                   thumbnail={c.system_video_thumbnail}
                 />
               </Reveal>
-            ) : (
-              <Reveal className="overflow-hidden rounded-3xl border border-border gradient-soft p-8">
-                <div className="aspect-video w-full rounded-2xl gradient-hero opacity-20" />
-              </Reveal>
-            )}
+            ) : null}
             <Reveal delay={120}>
               <ul className="space-y-3">
                 {systemItems.map((item: any, i: number) => (
