@@ -73,8 +73,20 @@ function AdminHome() {
       if (hero) {
         merged.hero_title_ar = hero.title ?? merged.hero_title_ar;
         merged.hero_subtitle_ar = hero.subtitle ?? merged.hero_subtitle_ar;
+        if (hero.content_json?.title_en != null) merged.hero_title_en = hero.content_json.title_en;
+        if (hero.content_json?.subtitle_en != null)
+          merged.hero_subtitle_en = hero.content_json.subtitle_en;
+        if (hero.content_json?.badge_en) merged.badge_en = hero.content_json.badge_en;
         if (hero.content_json?.image_url) merged.hero_image = hero.content_json.image_url;
         if (hero.content_json?.bg_image_url) merged.hero_bg_image = hero.content_json.bg_image_url;
+        if (hero.content_json?.cta_primary_ar)
+          merged.primary_cta_ar = hero.content_json.cta_primary_ar;
+        if (hero.content_json?.cta_primary_en)
+          merged.primary_cta_en = hero.content_json.cta_primary_en;
+        if (hero.content_json?.cta_secondary_ar)
+          merged.secondary_cta_ar = hero.content_json.cta_secondary_ar;
+        if (hero.content_json?.cta_secondary_en)
+          merged.secondary_cta_en = hero.content_json.cta_secondary_en;
       }
       if (why) {
         merged.why_title_ar = why.title ?? merged.why_title_ar;
@@ -120,10 +132,15 @@ function AdminHome() {
       subtitle: c.hero_subtitle_ar ?? null,
       content_json: {
         ...(c.badge_ar ? { badge_ar: c.badge_ar } : {}),
+        ...(c.badge_en ? { badge_en: c.badge_en } : {}),
         ...(c.hero_image ? { image_url: c.hero_image } : {}),
         ...(c.hero_bg_image ? { bg_image_url: c.hero_bg_image } : {}),
         title_en: c.hero_title_en ?? null,
         subtitle_en: c.hero_subtitle_en ?? null,
+        ...(c.primary_cta_ar ? { cta_primary_ar: c.primary_cta_ar } : {}),
+        ...(c.primary_cta_en ? { cta_primary_en: c.primary_cta_en } : {}),
+        ...(c.secondary_cta_ar ? { cta_secondary_ar: c.secondary_cta_ar } : {}),
+        ...(c.secondary_cta_en ? { cta_secondary_en: c.secondary_cta_en } : {}),
       },
       is_visible: true,
       display_order: 1,
