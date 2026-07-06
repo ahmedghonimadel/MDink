@@ -158,7 +158,7 @@ function AdminPortfolio() {
       result_ar: item.result_ar ?? "",
       result_en: item.result_en ?? "",
       website_url: item.website_url ?? item.url ?? "",
-      image_url: item.image_url ?? "",
+      image_url: item.cover_image_url ?? "",
       alt_ar: item.alt_ar ?? "",
       alt_en: item.alt_en ?? "",
       category: item.category ?? "case_study",
@@ -566,9 +566,9 @@ function AdminPortfolio() {
                     key={item.id}
                     className="flex items-center gap-3 rounded-xl border border-border bg-background/50 p-3"
                   >
-                    {item.image_url ? (
+                    {item.cover_image_url ? (
                       <img
-                        src={item.image_url}
+                        src={item.cover_image_url}
                         alt={item.title_ar ?? item.title}
                         className="h-14 w-14 rounded-lg object-cover"
                       />

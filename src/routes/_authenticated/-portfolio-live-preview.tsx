@@ -75,8 +75,8 @@ export function PortfolioLivePreview({
                 className="overflow-hidden rounded-2xl border border-border bg-background"
               >
                 <EditableImage
-                  value={item.image_url || ""}
-                  onSave={(v) => saveItem(item.id, "image_url", v)}
+                  value={item.cover_image_url || ""}
+                  onSave={(v) => saveItem(item.id, "cover_image_url", v)}
                   alt={item.title_ar}
                   className="h-40 w-full object-cover"
                 />
