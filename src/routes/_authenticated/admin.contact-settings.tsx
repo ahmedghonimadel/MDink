@@ -27,6 +27,33 @@ function ContactSettingsAdmin() {
     sort_order: "50",
     is_active: true,
   });
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const emptyForm = {
+    label_ar: "",
+    label_en: "",
+    value: "",
+    url: "",
+    icon: "MessageCircle",
+    sort_order: "50",
+    is_active: true,
+  };
+  function editChannel(row: any) {
+    setEditingId(row.id);
+    setForm({
+      label_ar: row.label_ar ?? "",
+      label_en: row.label_en ?? "",
+      value: row.value ?? "",
+      url: row.url ?? "",
+      icon: row.icon ?? "MessageCircle",
+      sort_order: String(row.sort_order ?? 50),
+      is_active: !!row.is_active,
+    });
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+  function resetForm() {
+    setEditingId(null);
+    setForm(emptyForm);
+  }
   const { data: rows = [] } = useQuery({
     queryKey: ["admin-social-links"],
     queryFn: async () => {
@@ -46,7 +73,7 @@ function ContactSettingsAdmin() {
       toast.error("اكتب اسم وسيلة التواصل");
       return;
     }
-    const { error } = await db.from("social_links").insert({
+    const payload = {
       platform: (form.label_en || form.label_ar).trim().toLowerCase(),
       label: form.label_ar.trim(),
       username: form.value || null,
@@ -54,19 +81,14 @@ function ContactSettingsAdmin() {
       icon: form.icon,
       display_order: Number(form.sort_order) || 50,
       is_active: form.is_active,
-    });
+    };
+    const { error } = editingId
+      ? await db.from("social_links").update(payload).eq("id", editingId)
+      : await db.from("social_links").insert(payload);
     if (error) toast.error(error.message);
     else {
-      toast.success("تمت إضافة وسيلة التواصل");
-      setForm({
-        label_ar: "",
-        label_en: "",
-        value: "",
-        url: "",
-        icon: "MessageCircle",
-        sort_order: "50",
-        is_active: true,
-      });
+      toast.success(editingId ? "تم تحديث القناة ✓" : "تمت إضافة وسيلة التواصل");
+      resetForm();
       qc.invalidateQueries({ queryKey: ["admin-social-links"] });
       qc.invalidateQueries({ queryKey: ["social-links-public"] });
     }
@@ -107,7 +129,14 @@ function ContactSettingsAdmin() {
       <ContactLivePreview channels={rows} />
 
       <section className="rounded-2xl border border-border bg-card p-6 shadow-card">
-        <h2 className="text-xl font-bold">إضافة قناة</h2>
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-bold">{editingId ? "تعديل قناة" : "إضافة قناة"}</h2>
+          {editingId && (
+            <Button size="sm" variant="ghost" onClick={resetForm}>
+              <Plus className="ml-1 h-4 w-4" /> قناة جديدة
+            </Button>
+          )}
+        </div>
         <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
           <Field
             label="الاسم عربي"
@@ -140,7 +169,7 @@ function ContactSettingsAdmin() {
             نشط
           </label>
           <Button onClick={save} className="mt-6 bg-brand text-brand-foreground">
-            <Plus className="ml-2 h-4 w-4" /> إضافة
+            <Plus className="ml-2 h-4 w-4" /> {editingId ? "حفظ التعديل" : "إضافة"}
           </Button>
         </div>
       </section>
@@ -162,6 +191,9 @@ function ContactSettingsAdmin() {
               <span className="rounded-full bg-brand/10 px-2 py-1 text-[11px] font-semibold text-brand">
                 {row.icon}
               </span>
+              <Button size="sm" variant="outline" onClick={() => editChannel(row)}>
+                تعديل
+              </Button>
               <Button size="sm" variant="outline" onClick={() => toggle(row.id, !!row.is_active)}>
                 {row.is_active ? "إخفاء" : "تفعيل"}
               </Button>
