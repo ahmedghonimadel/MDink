@@ -54,8 +54,13 @@ Deno.serve(async (req) => {
     .eq("user_id", callerData.user.id);
 
   if (rolesError) return json({ error: rolesError.message }, 500);
-  const canCreate = (callerRoles ?? []).some((row) => ["super_admin", "admin"].includes(row.role));
-  if (!canCreate) return json({ error: "Only admins can create users" }, 403);
+  const callerEmail = (callerData.user.email ?? "").toLowerCase();
+  const isProtectedAdmin = protectedAdmins.has(callerEmail);
+  const hasAdminRole = (callerRoles ?? []).some((row) =>
+    ["super_admin", "admin"].includes(row.role),
+  );
+  if (!isProtectedAdmin && !hasAdminRole)
+    return json({ error: "Only admins can create users" }, 403);
 
   const body = await req.json().catch(() => null);
   const email = String(body?.email ?? "")
