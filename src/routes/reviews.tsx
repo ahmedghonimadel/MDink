@@ -10,8 +10,6 @@ import {
   Video as VideoIcon,
   FileText,
   Link2,
-  ChevronLeft,
-  ChevronRight,
   X,
   CheckCircle2,
   Play,
@@ -485,14 +483,15 @@ function VideoCarousel({
   // اللف التلقائي — يقف عند الوقوف بالماوس أو أثناء تشغيل فيديو حتى لا يقطع المشاهدة
   useEffect(() => {
     if (videos.length <= 1 || hovering || videoPlaying) return;
-    const t = setInterval(() => setIdx((p) => (p + 1) % videos.length), 3000);
+    const t = setInterval(() => setIdx((p) => (p + 1) % videos.length), 2000);
     return () => clearInterval(t);
   }, [videos.length, hovering, videoPlaying]);
 
   return (
     <div className="mt-8">
+      {/* معرض دوّار (coverflow): النشط في النص والباقي يلف حوله */}
       <div
-        className="relative mx-auto max-w-md"
+        className="relative mx-auto flex h-64 max-w-4xl items-center justify-center overflow-hidden sm:h-[420px]"
         onMouseEnter={() => setHovering(true)}
         onMouseLeave={() => setHovering(false)}
         onTouchStart={(e) => (touchX.current = e.touches[0].clientX)}
@@ -504,105 +503,108 @@ function VideoCarousel({
           touchX.current = null;
         }}
       >
-        <div
-          key={idx}
-          className="testimonial-slide-in overflow-hidden rounded-3xl border border-border bg-card shadow-card"
-        >
-          <div className="p-4">
-            <VideoPlayer
-              key={active.media_url}
-              url={active.media_url || ""}
-              thumbnail={active.thumbnail_url}
-              title={pick(active.title_ar, active.title_en)}
-              autoPlay={wantPlay}
-              onPlayStateChange={setVideoPlaying}
-              onEnded={() => go(1)}
-            />
-          </div>
-          <div className="p-5 pt-1 text-center">
-            <div className="flex items-center justify-center gap-2">
-              <span className="inline-flex items-center gap-1 rounded-full bg-brand/15 px-2.5 py-1 text-[11px] font-bold text-brand">
-                <Play className="h-3 w-3" /> {pick("شهادة فيديو", "Video Testimonial")}
-              </span>
-              {active.is_verified && (
-                <span className="inline-flex items-center gap-1 rounded-full bg-accent/15 px-2.5 py-1 text-[11px] font-bold text-accent-foreground">
-                  <ShieldCheck className="h-3 w-3" /> {pick("موثق", "Verified")}
-                </span>
+        {videos.map((v, i) => {
+          const n = videos.length;
+          let off = i - idx;
+          if (off > n / 2) off -= n;
+          if (off < -n / 2) off += n;
+          if (Math.abs(off) > 1) return null;
+          const isActive = off === 0;
+          const parsed = parseVideoUrl(v.media_url || "");
+          const poster = v.thumbnail_url || parsed.thumbnail;
+          const label = pick(v.title_ar, v.title_en) || pick(v.name_ar, v.name_en);
+          return (
+            <div
+              key={i}
+              className="absolute left-1/2 top-1/2 w-[82%] max-w-lg transition-all duration-500 ease-out sm:w-[64%]"
+              style={{
+                transform: `translate(-50%, -50%) translateX(${off * 56}%) scale(${isActive ? 1 : 0.72})`,
+                opacity: isActive ? 1 : 0.5,
+                zIndex: isActive ? 30 : 20,
+                filter: isActive ? "none" : "blur(1px)",
+              }}
+            >
+              {isActive ? (
+                <div className="overflow-hidden rounded-3xl border border-border bg-card shadow-card">
+                  <VideoPlayer
+                    key={active.media_url}
+                    url={active.media_url || ""}
+                    thumbnail={active.thumbnail_url}
+                    title={label}
+                    autoPlay={wantPlay}
+                    onPlayStateChange={setVideoPlaying}
+                    onEnded={() => go(1)}
+                  />
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => goTo(i, true)}
+                  aria-label={label}
+                  title={label}
+                  className="group relative block aspect-video w-full overflow-hidden rounded-3xl border border-border bg-black shadow-card"
+                >
+                  {poster ? (
+                    <img src={poster} alt={label} className="h-full w-full object-cover" />
+                  ) : parsed.kind === "file" ? (
+                    <video
+                      src={`${parsed.embedUrl}#t=1`}
+                      muted
+                      playsInline
+                      preload="metadata"
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <div className="h-full w-full gradient-hero" />
+                  )}
+                  <span className="absolute inset-0 flex items-center justify-center bg-black/30 transition-colors group-hover:bg-black/15">
+                    <span className="flex h-12 w-12 items-center justify-center rounded-full bg-white/90 shadow-brand">
+                      <Play className="h-5 w-5 translate-x-0.5 text-brand" fill="currentColor" />
+                    </span>
+                  </span>
+                </button>
               )}
             </div>
-            <h3 className="mt-3 text-lg font-bold text-card-foreground">
-              {pick(active.title_ar, active.title_en) || pick(active.name_ar, active.name_en)}
-            </h3>
-            <p className="mt-1 text-sm text-muted-foreground">
-              {pick(active.role_ar, active.role_en)}
-            </p>
-            {(active.excerpt_ar || active.excerpt_en) && (
-              <p className="mt-2 text-sm text-muted-foreground">{pick(active.excerpt_ar, active.excerpt_en)}</p>
-            )}
-          </div>
-        </div>
+          );
+        })}
+      </div>
 
-        {videos.length > 1 && (
-          <>
-            <button
-              type="button"
-              onClick={() => go(locale === "ar" ? 1 : -1)}
-              aria-label={pick("السابق", "Previous")}
-              className="absolute top-1/3 left-0 -translate-x-1/2 rounded-full border border-border bg-background p-2 shadow-card transition-colors hover:bg-accent"
-            >
-              <ChevronLeft className="h-5 w-5" />
-            </button>
-            <button
-              type="button"
-              onClick={() => go(locale === "ar" ? -1 : 1)}
-              aria-label={pick("التالي", "Next")}
-              className="absolute top-1/3 right-0 translate-x-1/2 rounded-full border border-border bg-background p-2 shadow-card transition-colors hover:bg-accent"
-            >
-              <ChevronRight className="h-5 w-5" />
-            </button>
-          </>
+      {/* بيانات الشهادة النشطة */}
+      <div key={idx} className="testimonial-slide-in mx-auto mt-6 max-w-md text-center">
+        <div className="flex items-center justify-center gap-2">
+          <span className="inline-flex items-center gap-1 rounded-full bg-brand/15 px-2.5 py-1 text-[11px] font-bold text-brand">
+            <Play className="h-3 w-3" /> {pick("شهادة فيديو", "Video Testimonial")}
+          </span>
+          {active.is_verified && (
+            <span className="inline-flex items-center gap-1 rounded-full bg-accent/15 px-2.5 py-1 text-[11px] font-bold text-accent-foreground">
+              <ShieldCheck className="h-3 w-3" /> {pick("موثق", "Verified")}
+            </span>
+          )}
+        </div>
+        <h3 className="mt-3 text-lg font-bold text-card-foreground">
+          {pick(active.title_ar, active.title_en) || pick(active.name_ar, active.name_en)}
+        </h3>
+        <p className="mt-1 text-sm text-muted-foreground">{pick(active.role_ar, active.role_en)}</p>
+        {(active.excerpt_ar || active.excerpt_en) && (
+          <p className="mt-2 text-sm text-muted-foreground">
+            {pick(active.excerpt_ar, active.excerpt_en)}
+          </p>
         )}
       </div>
 
       {videos.length > 1 && (
-        <div className="mt-5 flex justify-center gap-3 overflow-x-auto pb-2">
-          {videos.map((v, i) => {
-            const parsed = parseVideoUrl(v.media_url || "");
-            const poster = v.thumbnail_url || parsed.thumbnail;
-            const label = pick(v.title_ar, v.title_en) || pick(v.name_ar, v.name_en);
-            return (
-              <button
-                key={i}
-                type="button"
-                onClick={() => goTo(i, true)}
-                aria-label={label || `${i + 1}`}
-                title={label}
-                className={`relative h-16 w-28 flex-shrink-0 overflow-hidden rounded-xl border-2 transition-all duration-300 ${
-                  i === idx
-                    ? "scale-105 border-brand shadow-card"
-                    : "border-transparent opacity-60 hover:scale-105 hover:opacity-100"
-                }`}
-              >
-                {poster ? (
-                  <img src={poster} alt={label} className="h-full w-full object-cover" />
-                ) : parsed.kind === "file" ? (
-                  // لا توجد صورة مصغّرة: نلتقط لقطة من الفيديو نفسه (الإطار عند الثانية 1)
-                  <video
-                    src={`${parsed.embedUrl}#t=1`}
-                    muted
-                    playsInline
-                    preload="metadata"
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <div className="h-full w-full gradient-hero" />
-                )}
-                <span className="absolute inset-0 flex items-center justify-center bg-black/25">
-                  <Play className="h-5 w-5 text-white" fill="currentColor" />
-                </span>
-              </button>
-            );
-          })}
+        <div className="mt-5 flex justify-center gap-2">
+          {videos.map((_, i) => (
+            <button
+              key={i}
+              type="button"
+              onClick={() => goTo(i, true)}
+              aria-label={`${i + 1}`}
+              className={`h-2.5 rounded-full transition-all ${
+                i === idx ? "w-6 bg-brand" : "w-2.5 bg-border hover:bg-brand/40"
+              }`}
+            />
+          ))}
         </div>
       )}
     </div>
