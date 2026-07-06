@@ -31,6 +31,8 @@ const defaults = {
   team_title_en: "Our Team",
   team_text_ar: "الأشخاص وراء تشغيل وتسويق وتطوير حضور MDink الطبي.",
   team_text_en: "The people behind MDink medical marketing and digital operations.",
+  // لحظات فريق MDink — تظهر أسفل الفريق في صفحة "من نحن"
+  gallery: [] as { image_url: string; caption_ar?: string; caption_en?: string }[],
 };
 
 const emptyMember = {
@@ -290,6 +292,88 @@ function AboutAdmin() {
             </div>
             <Button onClick={saveContent} className="mt-5 bg-brand text-brand-foreground">
               <Save className="ml-2 h-4 w-4" /> حفظ النصوص
+            </Button>
+          </section>
+
+          {/* لحظات فريق MDink */}
+          <section className="rounded-2xl border border-border bg-card p-6 shadow-card">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-bold">لحظات فريق MDink</h2>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  صور/لقطات من كواليس الفريق تظهر أسفل قسم الفريق في صفحة «من نحن». اتركها فارغة لإخفاء القسم.
+                </p>
+              </div>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() =>
+                  setContent({
+                    ...content,
+                    gallery: [
+                      ...(Array.isArray(content.gallery) ? content.gallery : []),
+                      { image_url: "", caption_ar: "", caption_en: "" },
+                    ],
+                  })
+                }
+              >
+                <Plus className="ml-1 h-4 w-4" /> إضافة لحظة
+              </Button>
+            </div>
+
+            <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {(Array.isArray(content.gallery) ? content.gallery : []).map((g: any, i: number) => (
+                <div key={i} className="rounded-xl border border-border p-3">
+                  <ImageUpload
+                    label={`صورة ${i + 1}`}
+                    value={g.image_url || ""}
+                    folder="about"
+                    onChange={(v) => {
+                      const arr = [...content.gallery];
+                      arr[i] = { ...arr[i], image_url: v };
+                      setContent({ ...content, gallery: arr });
+                    }}
+                  />
+                  <Input
+                    className="mt-2"
+                    placeholder="تعليق عربي (اختياري)"
+                    value={g.caption_ar || ""}
+                    onChange={(e) => {
+                      const arr = [...content.gallery];
+                      arr[i] = { ...arr[i], caption_ar: e.target.value };
+                      setContent({ ...content, gallery: arr });
+                    }}
+                  />
+                  <Input
+                    dir="ltr"
+                    className="mt-2"
+                    placeholder="Caption English (optional)"
+                    value={g.caption_en || ""}
+                    onChange={(e) => {
+                      const arr = [...content.gallery];
+                      arr[i] = { ...arr[i], caption_en: e.target.value };
+                      setContent({ ...content, gallery: arr });
+                    }}
+                  />
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="mt-2 text-destructive hover:text-destructive"
+                    onClick={() =>
+                      setContent({
+                        ...content,
+                        gallery: content.gallery.filter((_: any, j: number) => j !== i),
+                      })
+                    }
+                  >
+                    <Trash2 className="ml-1 h-4 w-4" /> حذف
+                  </Button>
+                </div>
+              ))}
+            </div>
+
+            <Button onClick={saveContent} className="mt-5 bg-brand text-brand-foreground">
+              <Save className="ml-2 h-4 w-4" /> حفظ اللحظات
             </Button>
           </section>
 

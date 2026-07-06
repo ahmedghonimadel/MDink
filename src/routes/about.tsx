@@ -154,7 +154,9 @@ function AboutPage() {
     },
   });
 
-  const gallery: any[] = [];
+  const gallery: any[] = Array.isArray(aboutPage?.content?.gallery)
+    ? aboutPage.content.gallery.filter((g: any) => g && g.image_url)
+    : [];
 
   const c = { ...DEFAULT, ...(aboutPage?.content ?? {}) };
   const L = (base: string) => c[`${base}_${locale}`] ?? c[`${base}_ar`] ?? "";
