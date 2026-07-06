@@ -564,7 +564,8 @@ function VideoCarousel({
       {videos.length > 1 && (
         <div className="mt-5 flex justify-center gap-3 overflow-x-auto pb-2">
           {videos.map((v, i) => {
-            const poster = v.thumbnail_url || parseVideoUrl(v.media_url || "").thumbnail;
+            const parsed = parseVideoUrl(v.media_url || "");
+            const poster = v.thumbnail_url || parsed.thumbnail;
             const label = pick(v.title_ar, v.title_en) || pick(v.name_ar, v.name_en);
             return (
               <button
@@ -581,6 +582,15 @@ function VideoCarousel({
               >
                 {poster ? (
                   <img src={poster} alt={label} className="h-full w-full object-cover" />
+                ) : parsed.kind === "file" ? (
+                  // لا توجد صورة مصغّرة: نلتقط لقطة من الفيديو نفسه (الإطار عند الثانية 1)
+                  <video
+                    src={`${parsed.embedUrl}#t=1`}
+                    muted
+                    playsInline
+                    preload="metadata"
+                    className="h-full w-full object-cover"
+                  />
                 ) : (
                   <div className="h-full w-full gradient-hero" />
                 )}
