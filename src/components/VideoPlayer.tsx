@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Play } from "lucide-react";
 import { parseVideoUrl } from "@/lib/video";
+import { useVideoPoster } from "@/lib/use-video-poster";
 
 interface VideoPlayerProps {
   url: string;
@@ -44,6 +45,9 @@ export function VideoPlayer({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoPlay]);
 
+  // لقطة من الفيديو نفسه كبوستر عند غياب صورة مصغّرة (ملفات MP4 فقط)
+  const capturedPoster = useVideoPoster(!thumbnail && v.kind === "file" ? url : null);
+
   if (!v.valid) {
     return (
       <div className={`flex aspect-video w-full items-center justify-center rounded-2xl border border-dashed border-border bg-muted/40 text-sm text-muted-foreground ${className}`}>
@@ -54,7 +58,7 @@ export function VideoPlayer({
 
   const dir = orientation || v.orientation;
   const isVertical = dir === "vertical";
-  const poster = thumbnail || v.thumbnail;
+  const poster = thumbnail || v.thumbnail || capturedPoster;
 
   // الإطار: عمودي بعرض محدود يشبه الموبايل، أفقي 16:9 كامل العرض
   const frameClass = isVertical
