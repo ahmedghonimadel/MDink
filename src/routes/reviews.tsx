@@ -504,7 +504,10 @@ function VideoCarousel({
           touchX.current = null;
         }}
       >
-        <div className="overflow-hidden rounded-3xl border border-border bg-card shadow-card">
+        <div
+          key={idx}
+          className="testimonial-slide-in overflow-hidden rounded-3xl border border-border bg-card shadow-card"
+        >
           <div className="p-4">
             <VideoPlayer
               key={active.media_url}
@@ -574,10 +577,10 @@ function VideoCarousel({
                 onClick={() => goTo(i, true)}
                 aria-label={label || `${i + 1}`}
                 title={label}
-                className={`relative h-16 w-28 flex-shrink-0 overflow-hidden rounded-xl border-2 transition-all ${
+                className={`relative h-16 w-28 flex-shrink-0 overflow-hidden rounded-xl border-2 transition-all duration-300 ${
                   i === idx
-                    ? "border-brand shadow-card"
-                    : "border-transparent opacity-70 hover:opacity-100"
+                    ? "scale-105 border-brand shadow-card"
+                    : "border-transparent opacity-60 hover:scale-105 hover:opacity-100"
                 }`}
               >
                 {poster ? (

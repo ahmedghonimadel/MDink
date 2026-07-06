@@ -167,6 +167,21 @@
   }
 }
 
+/* ───── Testimonial carousel slide-in ───── */
+@keyframes testimonial-in {
+  0% {
+    opacity: 0;
+    transform: translateX(28px) scale(0.96);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+.testimonial-slide-in {
+  animation: testimonial-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
 /* Glassmorphism + neon glow tokens — bespoke luxury surface */
 :root {
   --glass-bg: oklch(1 0 0 / 0.55);
