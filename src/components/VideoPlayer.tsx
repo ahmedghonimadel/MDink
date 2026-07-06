@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Play } from "lucide-react";
 import { parseVideoUrl } from "@/lib/video";
 
@@ -10,6 +10,8 @@ interface VideoPlayerProps {
   /** فرض الاتجاه (يتجاوز الاكتشاف التلقائي) */
   orientation?: "horizontal" | "vertical";
   className?: string;
+  /** يبدأ التشغيل تلقائيًا فور التركيب (عند اختيار الفيديو من المعرض) */
+  autoPlay?: boolean;
   /** يُستدعى عند انتهاء تشغيل فيديو MP4 (للانتقال للتالي في السلايدر) */
   onEnded?: () => void;
   /** يُستدعى عند بدء/إيقاف التشغيل (لإيقاف اللف التلقائي أثناء المشاهدة) */
@@ -29,11 +31,18 @@ export function VideoPlayer({
   title,
   orientation,
   className = "",
+  autoPlay,
   onEnded,
   onPlayStateChange,
 }: VideoPlayerProps) {
-  const [playing, setPlaying] = useState(false);
+  const [playing, setPlaying] = useState(!!autoPlay);
   const v = parseVideoUrl(url);
+
+  // بثّ حالة التشغيل للأب عند التشغيل التلقائي (خاصة لـ YouTube/Vimeo)
+  useEffect(() => {
+    if (autoPlay) onPlayStateChange?.(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoPlay]);
 
   if (!v.valid) {
     return (
@@ -64,6 +73,7 @@ export function VideoPlayer({
           poster={poster || undefined}
           controls
           playsInline
+          autoPlay={autoPlay}
           onPlay={() => onPlayStateChange?.(true)}
           onPause={() => onPlayStateChange?.(false)}
           onEnded={() => {

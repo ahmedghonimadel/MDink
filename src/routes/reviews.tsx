@@ -24,6 +24,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { VideoPlayer } from "@/components/VideoPlayer";
+import { parseVideoUrl } from "@/lib/video";
 import { Reveal } from "@/components/Reveal";
 import { uploadMedia } from "@/lib/upload";
 
@@ -471,11 +472,13 @@ function VideoCarousel({
   const [idx, setIdx] = useState(0);
   const [hovering, setHovering] = useState(false);
   const [videoPlaying, setVideoPlaying] = useState(false);
+  const [wantPlay, setWantPlay] = useState(false);
   const touchX = useRef<number | null>(null);
   const active = videos[idx];
-  const goTo = (i: number) => {
+  const goTo = (i: number, play = false) => {
     setIdx(((i % videos.length) + videos.length) % videos.length);
     setVideoPlaying(false);
+    setWantPlay(play);
   };
   const go = (d: number) => goTo(idx + d);
 
@@ -508,6 +511,7 @@ function VideoCarousel({
               url={active.media_url || ""}
               thumbnail={active.thumbnail_url}
               title={pick(active.title_ar, active.title_en)}
+              autoPlay={wantPlay}
               onPlayStateChange={setVideoPlaying}
               onEnded={() => go(1)}
             />
@@ -558,18 +562,34 @@ function VideoCarousel({
       </div>
 
       {videos.length > 1 && (
-        <div className="mt-5 flex justify-center gap-2">
-          {videos.map((_, i) => (
-            <button
-              key={i}
-              type="button"
-              onClick={() => goTo(i)}
-              aria-label={`${i + 1}`}
-              className={`h-2.5 rounded-full transition-all ${
-                i === idx ? "w-6 bg-brand" : "w-2.5 bg-border hover:bg-brand/40"
-              }`}
-            />
-          ))}
+        <div className="mt-5 flex justify-center gap-3 overflow-x-auto pb-2">
+          {videos.map((v, i) => {
+            const poster = v.thumbnail_url || parseVideoUrl(v.media_url || "").thumbnail;
+            const label = pick(v.title_ar, v.title_en) || pick(v.name_ar, v.name_en);
+            return (
+              <button
+                key={i}
+                type="button"
+                onClick={() => goTo(i, true)}
+                aria-label={label || `${i + 1}`}
+                title={label}
+                className={`relative h-16 w-28 flex-shrink-0 overflow-hidden rounded-xl border-2 transition-all ${
+                  i === idx
+                    ? "border-brand shadow-card"
+                    : "border-transparent opacity-70 hover:opacity-100"
+                }`}
+              >
+                {poster ? (
+                  <img src={poster} alt={label} className="h-full w-full object-cover" />
+                ) : (
+                  <div className="h-full w-full gradient-hero" />
+                )}
+                <span className="absolute inset-0 flex items-center justify-center bg-black/25">
+                  <Play className="h-5 w-5 text-white" fill="currentColor" />
+                </span>
+              </button>
+            );
+          })}
         </div>
       )}
     </div>
