@@ -22,6 +22,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { ImageUpload } from "@/components/ImageUpload";
+import { VideoUpload } from "@/components/VideoUpload";
 import { openExternal } from "@/lib/external-links";
 
 export const Route = createFileRoute("/_authenticated/admin/reviews")({
@@ -326,11 +327,10 @@ function PublishedTab({ qc }: { qc: ReturnType<typeof useQueryClient> }) {
           <div className="mt-3 grid gap-3 sm:grid-cols-2">
             <Labeled label={it.media_type === "video" ? "رابط الفيديو / رفع فيديو" : "الصورة"}>
               {it.media_type === "video" ? (
-                <Input
-                  dir="ltr"
-                  placeholder="/testimonials/...mp4 أو رابط"
+                <VideoUpload
                   value={it.media_url ?? ""}
-                  onChange={(e) => update(i, { media_url: e.target.value })}
+                  onChange={(url) => update(i, { media_url: url })}
+                  folder="testimonials"
                 />
               ) : (
                 <ImageUpload
