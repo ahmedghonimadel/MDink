@@ -130,8 +130,6 @@ function AboutAdmin() {
       return;
     }
     const payload = {
-      full_name: member.name_en.trim() || member.name_ar.trim(),
-      role_title: member.role_en.trim() || member.role_ar.trim(),
       image_url: member.image_url.trim() || null,
       name_ar: member.name_ar.trim(),
       name_en: member.name_en.trim() || null,
