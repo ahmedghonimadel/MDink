@@ -485,7 +485,7 @@ function VideoCarousel({
   // اللف التلقائي — يقف عند الوقوف بالماوس أو أثناء تشغيل فيديو حتى لا يقطع المشاهدة
   useEffect(() => {
     if (videos.length <= 1 || hovering || videoPlaying) return;
-    const t = setInterval(() => setIdx((p) => (p + 1) % videos.length), 4000);
+    const t = setInterval(() => setIdx((p) => (p + 1) % videos.length), 3000);
     return () => clearInterval(t);
   }, [videos.length, hovering, videoPlaying]);
 
