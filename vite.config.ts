@@ -17,6 +17,9 @@ export default defineConfig({
     tanstackStart({
       // إعادة توجيه نقطة دخول السيرفر إلى src/server.ts (غلاف معالجة أخطاء SSR)
       server: { entry: "server" },
+      // وضع SPA: يبني index.html ثابت يعمل على استضافة ثابتة (Vercel)
+      // كل البيانات تُجلب من Supabase في المتصفح، فلا حاجة لسيرفر SSR
+      spa: { enabled: true },
     }),
     viteReact(),
   ],
