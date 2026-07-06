@@ -483,7 +483,7 @@ function VideoCarousel({
   // اللف التلقائي — يقف عند الوقوف بالماوس أو أثناء تشغيل فيديو حتى لا يقطع المشاهدة
   useEffect(() => {
     if (videos.length <= 1 || hovering || videoPlaying) return;
-    const t = setInterval(() => setIdx((p) => (p + 1) % videos.length), 2000);
+    const t = setInterval(() => setIdx((p) => (p + 1) % videos.length), 3000);
     return () => clearInterval(t);
   }, [videos.length, hovering, videoPlaying]);
 
@@ -516,7 +516,7 @@ function VideoCarousel({
           return (
             <div
               key={i}
-              className="absolute left-1/2 top-1/2 w-[82%] max-w-lg transition-all duration-500 ease-out sm:w-[64%]"
+              className="absolute left-1/2 top-1/2 w-[82%] max-w-lg transition-all duration-[900ms] ease-in-out sm:w-[64%]"
               style={{
                 transform: `translate(-50%, -50%) translateX(${off * 56}%) scale(${isActive ? 1 : 0.72})`,
                 opacity: isActive ? 1 : 0.5,

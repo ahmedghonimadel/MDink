@@ -171,15 +171,15 @@
 @keyframes testimonial-in {
   0% {
     opacity: 0;
-    transform: translateX(28px) scale(0.96);
+    transform: translateY(10px);
   }
   100% {
     opacity: 1;
-    transform: translateX(0) scale(1);
+    transform: translateY(0);
   }
 }
 .testimonial-slide-in {
-  animation: testimonial-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: testimonial-in 0.7s ease-in-out both;
 }
 
 /* Glassmorphism + neon glow tokens — bespoke luxury surface */
