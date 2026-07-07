@@ -1,0 +1,9 @@
+[build]
+  command = "npm run build"
+  publish = "dist/client"
+
+# SPA: كل المسارات التطبيقية تُوجَّه لملف الـ shell (الملفات الثابتة تُقدَّم أولًا)
+[[redirects]]
+  from = "/*"
+  to = "/_shell.html"
+  status = 200
