@@ -441,6 +441,7 @@ function AdminServices() {
                       <img
                         src={service.image_url}
                         alt={service.title_ar}
+                        loading="lazy"
                         className="h-12 w-12 rounded-lg object-cover"
                       />
                     ) : (

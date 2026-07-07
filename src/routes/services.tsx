@@ -337,6 +337,7 @@ function ServicesPage() {
                   <img
                     src={service.image_url}
                     alt={service[`alt_${locale}`] || localized(service, "title", locale)}
+                    loading="lazy"
                     className="h-44 w-full object-cover"
                   />
                 )}

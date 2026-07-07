@@ -65,6 +65,7 @@ export function VideoUpload({
                 <img
                   src={parsed.thumbnail}
                   alt=""
+                  loading="lazy"
                   className="h-24 w-full rounded-lg object-cover"
                 />
               ) : null}

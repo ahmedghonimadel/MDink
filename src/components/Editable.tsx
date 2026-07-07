@@ -142,7 +142,7 @@ export function EditableImage({
   return (
     <div className="group/img relative inline-block">
       {value ? (
-        <img src={value} alt={alt} className={className} />
+        <img src={value} alt={alt} loading="lazy" className={className} />
       ) : (
         <div
           className={`flex items-center justify-center bg-muted text-muted-foreground ${className}`}

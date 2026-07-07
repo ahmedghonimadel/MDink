@@ -52,6 +52,7 @@ export function ImageUpload({
           <img
             src={value}
             alt=""
+            loading="lazy"
             className="h-32 w-full max-w-xs rounded-xl border border-border object-cover"
           />
           <button

@@ -497,6 +497,7 @@ function AboutAdmin() {
                       <img
                         src={item.image_url}
                         alt={item.name_ar ?? item.full_name}
+                        loading="lazy"
                         className="h-14 w-14 rounded-xl object-cover"
                       />
                     ) : (

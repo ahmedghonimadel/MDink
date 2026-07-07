@@ -137,6 +137,7 @@ function DoctorApplicationsAdmin() {
                   <img
                     src={r.photo_url}
                     alt={r.full_name}
+                    loading="lazy"
                     className="h-12 w-12 rounded-xl object-cover"
                   />
                 ) : null}

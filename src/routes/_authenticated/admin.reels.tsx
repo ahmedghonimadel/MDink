@@ -246,6 +246,7 @@ function AdminReels() {
                   <img
                     src={reel.thumbnail_url}
                     alt={reel.title_ar ?? reel.title}
+                    loading="lazy"
                     className="h-14 w-14 rounded-lg object-cover"
                   />
                 ) : (

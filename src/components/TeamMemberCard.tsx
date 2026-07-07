@@ -46,6 +46,7 @@ export function TeamMemberCard({
           <img
             src={member.image_url}
             alt={name}
+            loading="lazy"
             className="relative mx-auto h-28 w-28 rounded-full object-cover ring-2 ring-border transition-all duration-500 group-hover:ring-brand/50"
           />
         ) : (

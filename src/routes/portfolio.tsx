@@ -507,6 +507,7 @@ function PortfolioPage() {
           <img
             src={lightbox}
             alt={pick("إثبات الظهور في البحث", "Search visibility proof")}
+            loading="lazy"
             className="max-h-[88vh] max-w-full rounded-xl shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           />
@@ -553,6 +554,7 @@ function PortfolioCard({
           <img
             src={item.thumbnail_url!}
             alt={pick(item.title_ar, item.title_en)}
+            loading="lazy"
             className="h-full w-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
           />
         ) : (

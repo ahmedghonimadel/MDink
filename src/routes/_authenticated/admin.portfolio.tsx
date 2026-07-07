@@ -570,6 +570,7 @@ function AdminPortfolio() {
                       <img
                         src={item.cover_image_url}
                         alt={item.title_ar ?? item.title}
+                        loading="lazy"
                         className="h-14 w-14 rounded-lg object-cover"
                       />
                     ) : (

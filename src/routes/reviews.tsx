@@ -311,6 +311,7 @@ function ReviewsPage() {
                       <img
                         src={t.thumbnail_url || t.media_url || ""}
                         alt={pick(t.title_ar, t.title_en)}
+                        loading="lazy"
                         className="h-full w-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
                       />
                     ) : (
@@ -429,6 +430,7 @@ function ReviewsPage() {
               <img
                 src={lightbox.thumbnail_url || lightbox.media_url || ""}
                 alt={pick(lightbox.title_ar, lightbox.title_en)}
+                loading="lazy"
                 className="h-full max-h-[50vh] w-full object-contain bg-muted sm:max-h-[88vh]"
               />
             )}
@@ -545,7 +547,7 @@ function VideoCarousel({
                   className="group relative block aspect-video w-full overflow-hidden rounded-3xl border border-border bg-black shadow-card"
                 >
                   {poster ? (
-                    <img src={poster} alt={label} className="h-full w-full object-cover" />
+                    <img src={poster} alt={label} loading="lazy" className="h-full w-full object-cover" />
                   ) : parsed.kind === "file" ? (
                     <video
                       src={`${parsed.embedUrl}#t=1`}

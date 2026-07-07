@@ -264,7 +264,7 @@ function HomePage() {
         <div className="absolute inset-0 -z-10 gradient-soft" />
         {c.hero_bg_image ? (
           <div className="absolute inset-0 -z-10 opacity-10">
-            <img src={c.hero_bg_image} alt="" className="h-full w-full object-cover" />
+            <img src={c.hero_bg_image} alt="" loading="lazy" className="h-full w-full object-cover" />
           </div>
         ) : null}
         <div className="absolute -top-32 right-0 -z-10 h-96 w-96 rounded-full bg-brand/20 blur-3xl" />
@@ -322,6 +322,7 @@ function HomePage() {
                 <img
                   src={c.hero_image}
                   alt={L("hero_title")}
+                  fetchPriority="high"
                   className="w-full rounded-3xl border border-border object-cover shadow-brand"
                   style={{ aspectRatio: "4 / 5", maxHeight: 560 }}
                 />
@@ -334,6 +335,7 @@ function HomePage() {
                         <img
                           src={c.preview_card_image}
                           alt={L("preview_doctor")}
+                          loading="lazy"
                           className="h-full w-full object-cover"
                         />
                       ) : (

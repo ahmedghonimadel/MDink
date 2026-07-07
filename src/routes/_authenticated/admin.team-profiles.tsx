@@ -108,6 +108,7 @@ function TeamProfilesAdmin() {
                   <img
                     src={p.image_url}
                     alt={p.name_ar}
+                    loading="lazy"
                     className="h-14 w-14 rounded-xl object-cover"
                   />
                 ) : (

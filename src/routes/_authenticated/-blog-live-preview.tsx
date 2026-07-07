@@ -42,6 +42,7 @@ export function BlogLivePreview({ form }: { form: Record<string, any> }) {
           <img
             src={form.cover_image_url}
             alt={form.alt_ar || form.title_ar}
+            loading="lazy"
             className="mb-6 h-56 w-full rounded-xl object-cover"
           />
         ) : (

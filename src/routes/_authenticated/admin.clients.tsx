@@ -539,6 +539,7 @@ function ClientsAdmin() {
                     <img
                       src={r.logo_url}
                       alt={r.doctor_name}
+                      loading="lazy"
                       className="h-12 w-12 rounded-xl object-cover"
                     />
                   ) : (
