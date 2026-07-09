@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { z } from "zod";
 import { toast } from "sonner";
-import { Plus, Save, Trash2, Eye, EyeOff, Star } from "lucide-react";
+import { Plus, Save, Trash2, Eye, EyeOff, Star, X } from "lucide-react";
 import { requireWebsiteAdmin } from "@/lib/admin";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -119,6 +119,7 @@ function AdminBlogs() {
   const [faq, setFaq] = useState<FaqItem[]>([]);
   const [saving, setSaving] = useState(false);
   const [tab, setTab] = useState("live");
+  const [editorOpen, setEditorOpen] = useState(false);
 
   // التصنيفات من القاعدة (dropdown ديناميكي)
   const { data: categories = [] } = useQuery({
@@ -281,6 +282,7 @@ function AdminBlogs() {
     setSaving(false);
     if (error) return toast.error(error.message);
     toast.success("تم حفظ المقال ✓");
+    setEditorOpen(false);
     qc.invalidateQueries({ queryKey: ["admin-blog-posts-v2"] });
     qc.invalidateQueries({ queryKey: ["public-blog-posts-v3"] });
     startNew();
@@ -339,11 +341,11 @@ function AdminBlogs() {
           blogs={blogs}
           onEdit={(b) => {
             startEdit(b);
-            setTab("edit");
+            setEditorOpen(true);
           }}
           onNew={() => {
             startNew();
-            setTab("edit");
+            setEditorOpen(true);
           }}
           onDelete={remove}
           onTogglePublish={togglePublish}
@@ -355,8 +357,40 @@ function AdminBlogs() {
 
       {tab === "categories" && <CategoriesManager />}
 
-      {tab === "edit" && (
-        <div className="grid gap-6 xl:grid-cols-[1.15fr_1fr]">
+      {(tab === "edit" || editorOpen) && (
+        <div
+          className={
+            editorOpen
+              ? "fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/60 p-4 backdrop-blur-sm"
+              : ""
+          }
+          onClick={
+            editorOpen
+              ? (e) => {
+                  if (e.target === e.currentTarget) setEditorOpen(false);
+                }
+              : undefined
+          }
+        >
+          <div
+            className={
+              editorOpen ? "my-6 w-full max-w-5xl rounded-2xl border border-border bg-background p-6 shadow-2xl" : ""
+            }
+          >
+            {editorOpen && (
+              <div className="mb-4 flex items-center justify-between border-b border-border pb-3">
+                <h3 className="text-xl font-bold">{editingId ? "✍️ تعديل المقال" : "✍️ مقال جديد"}</h3>
+                <button
+                  type="button"
+                  onClick={() => setEditorOpen(false)}
+                  className="rounded-lg p-2 text-muted-foreground hover:bg-accent"
+                  aria-label="إغلاق"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+            )}
+            <div className="grid gap-6 xl:grid-cols-[1.15fr_1fr]">
           <section className="rounded-2xl border border-border bg-card p-6 shadow-card">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-bold">{editingId ? "تعديل مقال" : "مقال جديد"}</h2>
@@ -625,6 +659,26 @@ function AdminBlogs() {
               </ul>
             )}
           </section>
+            </div>
+            {editorOpen && (
+              <div className="sticky bottom-0 -mx-6 -mb-6 mt-6 flex justify-end gap-2 border-t border-border bg-background/95 px-6 py-3 backdrop-blur">
+                <button
+                  type="button"
+                  onClick={() => setEditorOpen(false)}
+                  className="rounded-md border border-border px-5 py-2 text-sm font-medium hover:bg-accent"
+                >
+                  إلغاء
+                </button>
+                <Button
+                  onClick={save}
+                  disabled={saving}
+                  className="gradient-hero text-brand-foreground shadow-brand"
+                >
+                  <Save className="ml-1 h-4 w-4" /> {saving ? "جاري الحفظ..." : "حفظ المقال"}
+                </Button>
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>
