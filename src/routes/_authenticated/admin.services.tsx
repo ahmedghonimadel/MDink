@@ -219,8 +219,8 @@ function AdminServices() {
       {/* تبويبات */}
       <div className="flex flex-wrap gap-2">
         {[
-          { id: "live", label: "✨ معاينة حية" },
-          { id: "edit", label: "تعديل تفصيلي" },
+          { id: "live", label: "✨ الصفحة الحية" },
+          { id: "edit", label: "⚙️ إعدادات إضافية" },
         ].map((t) => (
           <button
             key={t.id}
