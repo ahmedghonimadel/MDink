@@ -213,10 +213,8 @@ function HomePage() {
         if (hero.content_json?.badge_en) merged.badge_en = hero.content_json.badge_en;
         if (hero.content_json?.image_url) merged.hero_image = hero.content_json.image_url;
         if (hero.content_json?.bg_image_url) merged.hero_bg_image = hero.content_json.bg_image_url;
-        if (hero.content_json?.cta_primary_ar) merged.primary_cta_ar = hero.content_json.cta_primary_ar;
-        if (hero.content_json?.cta_primary_en) merged.primary_cta_en = hero.content_json.cta_primary_en;
-        if (hero.content_json?.cta_secondary_ar) merged.secondary_cta_ar = hero.content_json.cta_secondary_ar;
-        if (hero.content_json?.cta_secondary_en) merged.secondary_cta_en = hero.content_json.cta_secondary_en;
+        // باقي حقول الهيرو/الأقسام (أزرار، ثقة، إحصائيات، خدمات، CTA...) تُقرأ تلقائيًا
+        // عبر Object.assign(merged, content_json) بأسماء مفاتيحها، مع FALLBACK كقيم افتراضية.
       }
       if (why) {
         merged.why_title_ar = why.title ?? merged.why_title_ar;

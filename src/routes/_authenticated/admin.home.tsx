@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { ImageUpload } from "@/components/ImageUpload";
 import { VideoUpload } from "@/components/VideoUpload";
+import { HOME_DEFAULTS } from "@/lib/home-defaults";
 import { HomeLivePreview } from "./-home-live-preview";
 
 export const Route = createFileRoute("/_authenticated/admin/home")({
@@ -57,7 +58,9 @@ function AdminHome() {
       const rows =
         (await (supabase as any).from("page_sections").select("*").eq("page_slug", "home")).data ??
         [];
-      const merged: Record<string, any> = {};
+      // نبدأ بالقيم الافتراضية (نفس ما يعرضه الموقع) حتى لا يبدأ المحرّر فارغًا
+      // ويمسح المحتوى عند الحفظ. ثم يطغى محتوى قاعدة البيانات فوقها.
+      const merged: Record<string, any> = { ...HOME_DEFAULTS };
       const bySection: Record<string, any> = {};
       rows.forEach((r: any) => {
         bySection[r.section_key] = r;
@@ -74,14 +77,8 @@ function AdminHome() {
         if (hero.content_json?.badge_en) merged.badge_en = hero.content_json.badge_en;
         if (hero.content_json?.image_url) merged.hero_image = hero.content_json.image_url;
         if (hero.content_json?.bg_image_url) merged.hero_bg_image = hero.content_json.bg_image_url;
-        if (hero.content_json?.cta_primary_ar)
-          merged.primary_cta_ar = hero.content_json.cta_primary_ar;
-        if (hero.content_json?.cta_primary_en)
-          merged.primary_cta_en = hero.content_json.cta_primary_en;
-        if (hero.content_json?.cta_secondary_ar)
-          merged.secondary_cta_ar = hero.content_json.cta_secondary_ar;
-        if (hero.content_json?.cta_secondary_en)
-          merged.secondary_cta_en = hero.content_json.cta_secondary_en;
+        // باقي الحقول (الأزرار، الثقة، الإحصائيات، الخدمات، CTA...) تُقرأ تلقائيًا
+        // عبر Object.assign أعلاه بأسماء مفاتيحها فوق القيم الافتراضية.
       }
       if (why) {
         merged.why_title_ar = why.title ?? merged.why_title_ar;
@@ -133,10 +130,41 @@ function AdminHome() {
         ...(c.preview_card_image ? { preview_card_image: c.preview_card_image } : {}),
         title_en: c.hero_title_en ?? null,
         subtitle_en: c.hero_subtitle_en ?? null,
-        ...(c.primary_cta_ar ? { cta_primary_ar: c.primary_cta_ar } : {}),
-        ...(c.primary_cta_en ? { cta_primary_en: c.primary_cta_en } : {}),
-        ...(c.secondary_cta_ar ? { cta_secondary_ar: c.secondary_cta_ar } : {}),
-        ...(c.secondary_cta_en ? { cta_secondary_en: c.secondary_cta_en } : {}),
+        // أزرار الهيرو (بأسماء مفاتيحها الحقيقية)
+        ...(c.primary_cta_ar ? { primary_cta_ar: c.primary_cta_ar } : {}),
+        ...(c.primary_cta_en ? { primary_cta_en: c.primary_cta_en } : {}),
+        ...(c.secondary_cta_ar ? { secondary_cta_ar: c.secondary_cta_ar } : {}),
+        ...(c.secondary_cta_en ? { secondary_cta_en: c.secondary_cta_en } : {}),
+        // عناصر الثقة + كارت الطبيب
+        ...(Array.isArray(c.trust_ar) ? { trust_ar: c.trust_ar } : {}),
+        ...(Array.isArray(c.trust_en) ? { trust_en: c.trust_en } : {}),
+        ...(c.preview_doctor_ar ? { preview_doctor_ar: c.preview_doctor_ar } : {}),
+        ...(c.preview_doctor_en ? { preview_doctor_en: c.preview_doctor_en } : {}),
+        ...(c.preview_specialty_ar ? { preview_specialty_ar: c.preview_specialty_ar } : {}),
+        ...(c.preview_specialty_en ? { preview_specialty_en: c.preview_specialty_en } : {}),
+        ...(c.published_label_ar ? { published_label_ar: c.published_label_ar } : {}),
+        ...(c.published_label_en ? { published_label_en: c.published_label_en } : {}),
+        ...(c.preview_label_ar ? { preview_label_ar: c.preview_label_ar } : {}),
+        ...(c.preview_url ? { preview_url: c.preview_url } : {}),
+        ...(c.preview_link ? { preview_link: c.preview_link } : {}),
+        ...(Array.isArray(c.dashboard_card_json) ? { dashboard_card_json: c.dashboard_card_json } : {}),
+        // الإحصائيات
+        ...(Array.isArray(c.stats_json) ? { stats_json: c.stats_json } : {}),
+        // الخدمات
+        ...(c.services_title_ar ? { services_title_ar: c.services_title_ar } : {}),
+        ...(c.services_title_en ? { services_title_en: c.services_title_en } : {}),
+        ...(c.services_intro_ar ? { services_intro_ar: c.services_intro_ar } : {}),
+        ...(c.services_intro_en ? { services_intro_en: c.services_intro_en } : {}),
+        ...(Array.isArray(c.services_json) ? { services_json: c.services_json } : {}),
+        // دعوة الإجراء
+        ...(c.cta_title_ar ? { cta_title_ar: c.cta_title_ar } : {}),
+        ...(c.cta_title_en ? { cta_title_en: c.cta_title_en } : {}),
+        ...(c.cta_text_ar ? { cta_text_ar: c.cta_text_ar } : {}),
+        ...(c.cta_text_en ? { cta_text_en: c.cta_text_en } : {}),
+        ...(c.cta_primary_ar ? { cta_primary_ar: c.cta_primary_ar } : {}),
+        ...(c.cta_primary_en ? { cta_primary_en: c.cta_primary_en } : {}),
+        ...(c.cta_secondary_ar ? { cta_secondary_ar: c.cta_secondary_ar } : {}),
+        ...(c.cta_secondary_en ? { cta_secondary_en: c.cta_secondary_en } : {}),
       },
       is_visible: true,
       display_order: 1,
@@ -149,8 +177,12 @@ function AdminHome() {
       subtitle: c.why_intro_ar ?? null,
       video_url: c.why_video_url ?? null,
       content_json: {
-        ...(Array.isArray(c.why_points) ? { points: c.why_points } : {}),
         ...(c.why_video_poster ? { why_video_poster: c.why_video_poster } : {}),
+        ...(c.why_title_en ? { why_title_en: c.why_title_en } : {}),
+        ...(c.why_intro_en ? { why_intro_en: c.why_intro_en } : {}),
+        ...(Array.isArray(c.advantages_json) ? { advantages_json: c.advantages_json } : {}),
+        ...(c.talk_ar ? { talk_ar: c.talk_ar } : {}),
+        ...(c.talk_en ? { talk_en: c.talk_en } : {}),
       },
       is_visible: true,
       display_order: 2,
@@ -165,6 +197,8 @@ function AdminHome() {
       content_json: {
         title_en: c.system_title_en ?? null,
         intro_en: c.system_intro_en ?? null,
+        ...(c.system_label_ar ? { system_label_ar: c.system_label_ar } : {}),
+        ...(c.system_label_en ? { system_label_en: c.system_label_en } : {}),
         ...(c.system_video_title ? { video_title: c.system_video_title } : {}),
         ...(c.system_video_thumbnail ? { video_thumbnail: c.system_video_thumbnail } : {}),
         ...(Array.isArray(c.system_items_json) ? { items: c.system_items_json } : {}),
