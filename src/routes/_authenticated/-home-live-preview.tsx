@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { EditableText, EditableImage } from "@/components/Editable";
 import { VideoUpload } from "@/components/VideoUpload";
+import { ImageUpload } from "@/components/ImageUpload";
 import { pickIcon } from "@/lib/cms";
 import { Sparkles, CheckCircle2, Stethoscope, Plus, X } from "lucide-react";
 
@@ -188,6 +189,31 @@ export function HomeLivePreview({
         </div>
       </section>
 
+      {/* صور الهيرو — رفع / تغيير / حذف */}
+      <div className="rounded-2xl border border-dashed border-brand/30 bg-muted/20 p-5">
+        <div className="mb-3 text-sm font-semibold">🖼️ صور الهيرو</div>
+        <div className="grid gap-4 sm:grid-cols-3">
+          <ImageUpload
+            label="صورة الهيرو الرئيسية (تظهر بدل كارت الطبيب)"
+            value={c.hero_image || ""}
+            onChange={(v) => set("hero_image", v)}
+            folder="home"
+          />
+          <ImageUpload
+            label="صورة خلفية الهيرو (اختياري)"
+            value={c.hero_bg_image || ""}
+            onChange={(v) => set("hero_bg_image", v)}
+            folder="home"
+          />
+          <ImageUpload
+            label="صورة كارت الطبيب"
+            value={c.preview_card_image || ""}
+            onChange={(v) => set("preview_card_image", v)}
+            folder="home"
+          />
+        </div>
+      </div>
+
       {/* ===== STATS ===== */}
       <section className="overflow-hidden rounded-2xl border-y border-border bg-card">
         <div className="grid grid-cols-2 gap-6 px-4 py-10 sm:grid-cols-4">
@@ -262,6 +288,8 @@ export function HomeLivePreview({
           <div>
             <div className="mb-2 text-xs text-muted-foreground">فيديو القسم (ارفعي أو الصقي رابط):</div>
             <VideoUpload value={c.why_video_url || ""} onChange={(v) => set("why_video_url", v)} folder="home" />
+            <div className="mb-2 mt-4 text-xs text-muted-foreground">صورة مصغّرة للفيديو (للروابط):</div>
+            <ImageUpload value={c.why_video_poster || ""} onChange={(v) => set("why_video_poster", v)} folder="home" />
           </div>
         </div>
       </section>
@@ -277,6 +305,15 @@ export function HomeLivePreview({
           <div>
             <div className="mb-2 text-xs text-muted-foreground">فيديو المنظومة (ارفعي أو الصقي رابط):</div>
             <VideoUpload value={c.system_video_url || ""} onChange={(v) => set("system_video_url", v)} folder="home" />
+            <div className="mb-1 mt-4 text-xs text-muted-foreground">عنوان الفيديو (اختياري):</div>
+            <EditableText
+              value={c.system_video_title || ""}
+              onSave={(v) => set("system_video_title", v)}
+              placeholder="عنوان الفيديو"
+              className="block rounded-lg border border-border bg-background px-3 py-1.5 text-sm"
+            />
+            <div className="mb-2 mt-4 text-xs text-muted-foreground">صورة مصغّرة لفيديو المنظومة:</div>
+            <ImageUpload value={c.system_video_thumbnail || ""} onChange={(v) => set("system_video_thumbnail", v)} folder="home" />
           </div>
           <div>
             <ul className="space-y-3">

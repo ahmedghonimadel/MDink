@@ -130,6 +130,7 @@ function AdminHome() {
         ...(c.badge_en ? { badge_en: c.badge_en } : {}),
         ...(c.hero_image ? { image_url: c.hero_image } : {}),
         ...(c.hero_bg_image ? { bg_image_url: c.hero_bg_image } : {}),
+        ...(c.preview_card_image ? { preview_card_image: c.preview_card_image } : {}),
         title_en: c.hero_title_en ?? null,
         subtitle_en: c.hero_subtitle_en ?? null,
         ...(c.primary_cta_ar ? { cta_primary_ar: c.primary_cta_ar } : {}),
