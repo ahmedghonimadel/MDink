@@ -1,10 +1,17 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
-import { CheckCircle2, Plus, Trash2, Eye, EyeOff } from "lucide-react";
+import { CheckCircle2, Plus, Trash2, Eye, EyeOff, ChevronUp, ChevronDown } from "lucide-react";
 import { EditableText } from "@/components/Editable";
+import { ImageUpload } from "@/components/ImageUpload";
 import { pickIcon, splitLines, joinLines } from "@/lib/cms";
 import { supabase } from "@/integrations/supabase/client";
+
+const ICON_OPTIONS = [
+  "Globe", "TrendingUp", "Megaphone", "Sparkles", "ShieldCheck", "LayoutDashboard",
+  "Camera", "Users", "Video", "Palette", "Stethoscope", "MessageCircle", "BarChart3",
+  "LifeBuoy", "FileText",
+];
 
 /**
  * الصفحة الحية لإدارة الخدمات — بنفس تصميم صفحة /services العامة.
@@ -64,6 +71,18 @@ export function ServicesLivePreview({
   async function toggleActive(id: string, isActive: boolean) {
     const { error } = await db.from("services").update({ is_active: !isActive }).eq("id", id);
     if (error) return toast.error(error.message);
+    refresh();
+  }
+
+  // ترتيب: تبديل display_order مع الكرت المجاور
+  async function reorder(id: string, dir: -1 | 1) {
+    const sorted = [...services].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+    const idx = sorted.findIndex((s) => s.id === id);
+    const swap = sorted[idx + dir];
+    if (!swap) return;
+    const cur = sorted[idx];
+    await db.from("services").update({ display_order: swap.sort_order ?? 0 }).eq("id", cur.id);
+    await db.from("services").update({ display_order: cur.sort_order ?? 0 }).eq("id", swap.id);
     refresh();
   }
 
@@ -167,12 +186,37 @@ export function ServicesLivePreview({
                 key={s.id}
                 className={`group/item relative flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-card transition-all hover:-translate-y-1 hover:border-brand/40 hover:shadow-brand ${s.is_published ? "" : "opacity-50"}`}
               >
+                {/* صورة الخدمة (اختياري) */}
+                <div className="border-b border-border p-3">
+                  <ImageUpload
+                    label="صورة الخدمة (اختياري)"
+                    value={s.image_url || ""}
+                    onChange={(v) => saveField(s.id, "image_url", v)}
+                    folder="services"
+                  />
+                </div>
                 <div className="flex flex-1 flex-col p-6">
                   <div className="flex items-center justify-between">
                     <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-brand/10 text-brand">
                       <Icon className="h-6 w-6" />
                     </div>
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-0.5">
+                      <button
+                        type="button"
+                        onClick={() => reorder(s.id, -1)}
+                        title="تحريك لأعلى"
+                        className="rounded-lg p-1.5 text-muted-foreground hover:bg-accent"
+                      >
+                        <ChevronUp className="h-4 w-4" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => reorder(s.id, 1)}
+                        title="تحريك لأسفل"
+                        className="rounded-lg p-1.5 text-muted-foreground hover:bg-accent"
+                      >
+                        <ChevronDown className="h-4 w-4" />
+                      </button>
                       <button
                         type="button"
                         onClick={() => toggleActive(s.id, s.is_published)}
@@ -191,8 +235,19 @@ export function ServicesLivePreview({
                       </button>
                     </div>
                   </div>
-                  <div className="mt-2 text-[10px] text-muted-foreground">
-                    أيقونة: <EditableText value={s.icon || ""} onSave={(v) => saveField(s.id, "icon", v)} placeholder="Globe" />
+                  <div className="mt-2 flex items-center gap-2 text-[11px] text-muted-foreground">
+                    <span>الأيقونة:</span>
+                    <select
+                      value={s.icon || "Globe"}
+                      onChange={(e) => saveField(s.id, "icon", e.target.value)}
+                      className="rounded-lg border border-border bg-background px-2 py-1 text-xs"
+                    >
+                      {ICON_OPTIONS.map((ic) => (
+                        <option key={ic} value={ic}>
+                          {ic}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                   <EditableText
                     as="h2"

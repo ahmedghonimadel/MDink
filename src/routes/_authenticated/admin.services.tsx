@@ -19,7 +19,7 @@ export const Route = createFileRoute("/_authenticated/admin/services")({
   component: AdminServices,
 });
 
-const ICON_OPTIONS = [
+export const ICON_OPTIONS = [
   "Globe",
   "TrendingUp",
   "Megaphone",
