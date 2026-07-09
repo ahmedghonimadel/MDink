@@ -1,5 +1,6 @@
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
+import { CheckCircle2 } from "lucide-react";
 import { EditableText, EditableImage } from "@/components/Editable";
 import { pickIcon, splitLines, joinLines } from "@/lib/cms";
 import { supabase } from "@/integrations/supabase/client";
@@ -73,44 +74,53 @@ export function ServicesLivePreview({
               const Icon = pickIcon(s.icon);
               const checks = Array.isArray(s.checkmarks_ar) ? s.checkmarks_ar : [];
               return (
-                <div key={s.id} className="rounded-2xl border border-border bg-background p-6">
+                <div
+                  key={s.id}
+                  className="flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-card transition-all hover:-translate-y-1 hover:border-brand/40 hover:shadow-brand"
+                >
                   {s.image_url ? (
                     <EditableImage
                       value={s.image_url}
                       onSave={(v) => saveService(s.id, "image_url", v)}
                       alt={s.title_ar}
-                      className="mb-3 h-32 w-full rounded-xl object-cover"
+                      className="h-44 w-full object-cover"
                     />
-                  ) : (
-                    <Icon className="h-8 w-8 text-brand" />
-                  )}
-                  <EditableText
-                    as="h3"
-                    value={s.title_ar || ""}
-                    onSave={(v) => saveService(s.id, "title_ar", v)}
-                    placeholder="عنوان الخدمة"
-                    className="mt-3 block font-bold"
-                  />
-                  <EditableText
-                    as="p"
-                    multiline
-                    value={s.description_ar || ""}
-                    onSave={(v) => saveService(s.id, "description_ar", v)}
-                    placeholder="وصف الخدمة"
-                    className="mt-2 block text-sm text-muted-foreground"
-                  />
-                  {checks.length ? (
-                    <div className="mt-3">
+                  ) : null}
+                  <div className="flex flex-1 flex-col p-6">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-brand/10 text-brand">
+                      <Icon className="h-6 w-6" />
+                    </div>
+                    <EditableText
+                      as="h3"
+                      value={s.title_ar || ""}
+                      onSave={(v) => saveService(s.id, "title_ar", v)}
+                      placeholder="عنوان الخدمة"
+                      className="mt-4 block text-lg font-bold"
+                    />
+                    <EditableText
+                      as="p"
+                      multiline
+                      value={s.description_ar || ""}
+                      onSave={(v) => saveService(s.id, "description_ar", v)}
+                      placeholder="وصف الخدمة"
+                      className="mt-2 block text-sm leading-relaxed text-muted-foreground"
+                    />
+                    <div className="mt-4 border-t border-border pt-4">
+                      {checks.map((point: string, pi: number) => (
+                        <div key={pi} className="flex items-start gap-2 text-sm text-muted-foreground">
+                          <CheckCircle2 className="mt-0.5 h-4 w-4 flex-shrink-0 text-brand" /> {point}
+                        </div>
+                      ))}
                       <EditableText
                         as="div"
                         multiline
                         value={joinLines(checks)}
                         onSave={(v) => saveService(s.id, "checkmarks_ar", v)}
                         placeholder="النقاط (كل نقطة في سطر)"
-                        className="block whitespace-pre-line text-xs text-brand"
+                        className="mt-2 block whitespace-pre-line text-xs text-brand/70"
                       />
                     </div>
-                  ) : null}
+                  </div>
                 </div>
               );
             })}
