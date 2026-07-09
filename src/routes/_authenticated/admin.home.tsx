@@ -41,13 +41,8 @@ const SECTION_LABELS: Record<string, string> = {
 };
 
 const TABS = [
-  { id: "live", label: "✨ معاينة حية" },
-  { id: "hero", label: "الهيرو" },
-  { id: "stats", label: "الإحصائيات" },
-  { id: "services", label: "الخدمات" },
-  { id: "why", label: "لماذا MDink" },
-  { id: "cta", label: "دعوة الإجراء" },
-  { id: "sections", label: "ترتيب الأقسام" },
+  { id: "live", label: "✨ الصفحة الحية" },
+  { id: "sections", label: "🔀 ترتيب الأقسام" },
 ];
 
 function AdminHome() {
