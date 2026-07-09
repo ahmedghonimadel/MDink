@@ -91,17 +91,16 @@ export function HomeLivePreview({
               <EditableText value={c[L("badge")] || ""} onSave={(v) => set(L("badge"), v)} placeholder="الشارة" />
             </div>
             <h1
-              className="mt-6 max-w-[760px] font-bold tracking-tight"
+              className="mt-6 max-w-[760px] font-bold tracking-tight text-brand"
               style={{ fontSize: "clamp(1.9rem, 4.2vw, 3.5rem)", lineHeight: 1.3 }}
             >
-              <span className="bg-gradient-to-l from-brand to-primary bg-clip-text text-transparent">
-                <EditableText
-                  multiline
-                  value={c[L("hero_title")] || ""}
-                  onSave={(v) => set(L("hero_title"), v)}
-                  placeholder="العنوان الرئيسي"
-                />
-              </span>
+              <EditableText
+                multiline
+                value={c[L("hero_title")] || ""}
+                onSave={(v) => set(L("hero_title"), v)}
+                placeholder="العنوان الرئيسي"
+                className="block"
+              />
             </h1>
             <div className="mt-6 max-w-xl text-base leading-loose text-muted-foreground sm:text-lg">
               <EditableText
