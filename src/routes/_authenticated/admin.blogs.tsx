@@ -18,6 +18,7 @@ import { CategoriesManager } from "@/components/admin/CategoriesManager";
 import type { Block } from "@/components/BlockRenderer";
 import type { FaqItem } from "@/components/FaqAccordion";
 import { BlogLivePreview } from "./-blog-live-preview";
+import { BlogManageLive } from "./-blog-manage-live";
 
 export const Route = createFileRoute("/_authenticated/admin/blogs")({
   beforeLoad: requireWebsiteAdmin,
@@ -117,7 +118,7 @@ function AdminBlogs() {
   const [blocks, setBlocks] = useState<Block[]>([]);
   const [faq, setFaq] = useState<FaqItem[]>([]);
   const [saving, setSaving] = useState(false);
-  const [tab, setTab] = useState("edit");
+  const [tab, setTab] = useState("live");
 
   // التصنيفات من القاعدة (dropdown ديناميكي)
   const { data: categories = [] } = useQuery({
@@ -290,7 +291,16 @@ function AdminBlogs() {
     const { error } = await db.from("blog_posts").delete().eq("id", id);
     if (error) return toast.error(error.message);
     qc.invalidateQueries({ queryKey: ["admin-blog-posts-v2"] });
+    qc.invalidateQueries({ queryKey: ["public-blog-posts-v3"] });
     toast.success("تم الحذف");
+  }
+
+  async function togglePublish(id: string, isPublished: boolean) {
+    const { error } = await db.from("blog_posts").update({ is_published: !isPublished }).eq("id", id);
+    if (error) return toast.error(error.message);
+    qc.invalidateQueries({ queryKey: ["admin-blog-posts-v2"] });
+    qc.invalidateQueries({ queryKey: ["public-blog-posts-v3"] });
+    toast.success(isPublished ? "تم الإخفاء" : "تم النشر ✓");
   }
 
   return (
@@ -305,6 +315,7 @@ function AdminBlogs() {
       {/* تبويبات */}
       <div className="flex flex-wrap gap-2">
         {[
+          { id: "live", label: "🖥️ تعديل حي للمدونة" },
           { id: "edit", label: "✍️ تعديل المقال" },
           { id: "preview", label: "✨ معاينة المقال" },
           { id: "categories", label: "🏷️ التصنيفات" },
@@ -322,6 +333,23 @@ function AdminBlogs() {
           </button>
         ))}
       </div>
+
+      {tab === "live" && (
+        <BlogManageLive
+          blogs={blogs}
+          onEdit={(b) => {
+            startEdit(b);
+            setTab("edit");
+          }}
+          onNew={() => {
+            startNew();
+            setTab("edit");
+          }}
+          onDelete={remove}
+          onTogglePublish={togglePublish}
+          onCategories={() => setTab("categories")}
+        />
+      )}
 
       {tab === "preview" && <BlogLivePreview form={form} />}
 
