@@ -324,6 +324,16 @@ function PortfolioPage() {
         .data ?? [],
   });
 
+  const { data: cmsPage } = useQuery({
+    queryKey: ["page-sections-public", "portfolio"],
+    queryFn: async () => {
+      const rows = (await db.from("page_sections").select("*").eq("page_slug", "portfolio")).data ?? [];
+      const merged: Record<string, any> = {};
+      rows.forEach((r: any) => Object.assign(merged, r.content_json ?? {}));
+      return merged;
+    },
+  });
+
   // استخدم بيانات لوحة التحكم لو متوفرة وبالحقول الجديدة، وإلا اعرض البيانات المبدئية
   const items: Item[] = useMemo(() => {
     const usable = (dbItems as any[]).filter((d) => d.title && d.category);
@@ -350,8 +360,11 @@ function PortfolioPage() {
     return SEED;
   }, [dbItems]);
 
-  const L = (base: keyof typeof PAGE) =>
-    (PAGE as any)[`${base.toString().replace(/_(ar|en)$/, "")}_${locale}`] ?? "";
+  const c: Record<string, any> = { ...PAGE, ...(cmsPage ?? {}) };
+  const L = (base: keyof typeof PAGE) => {
+    const key = base.toString().replace(/_(ar|en)$/, "");
+    return c[`${key}_${locale}`] ?? c[`${key}_ar`] ?? "";
+  };
   const pick = (ar: string, en: string) => (locale === "en" ? en : ar);
 
   const featured = items.filter((i) => i.is_featured && i.category === "medical_websites");

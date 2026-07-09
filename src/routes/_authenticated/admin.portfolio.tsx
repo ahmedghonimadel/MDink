@@ -235,28 +235,24 @@ function AdminPortfolio() {
     );
     if (error) return toast.error(error.message);
     qc.invalidateQueries({ queryKey: ["page-sections-admin", "portfolio"] });
-    toast.success("تم حفظ عناوين الصفحة ✓");
+    qc.invalidateQueries({ queryKey: ["page-sections-public", "portfolio"] });
+    toast.success("تم حفظ التغييرات ✓");
   }
 
   return (
     <div className="space-y-6">
-      <header className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-3xl font-bold">إدارة الأعمال Portfolio</h1>
-          <p className="mt-1 text-muted-foreground">
-            دراسات الحالة، المقاييس، الصور، والمزيد من أعمالنا — تحكم كامل بالعربي والإنجليزي.
-          </p>
-        </div>
-        <Button onClick={savePage} className="gradient-hero text-brand-foreground shadow-brand">
-          <Save className="ml-2 h-4 w-4" /> حفظ عناوين الصفحة
-        </Button>
+      <header>
+        <h1 className="text-3xl font-bold">إدارة الأعمال Portfolio</h1>
+        <p className="mt-1 text-muted-foreground">
+          كل الأعمال وعناوين الصفحة — بالعربي والإنجليزي، بنفس شكل الموقع.
+        </p>
       </header>
 
       {/* تبويبات */}
       <div className="flex flex-wrap gap-2">
         {[
-          { id: "live", label: "✨ معاينة حية" },
-          { id: "edit", label: "تعديل تفصيلي" },
+          { id: "live", label: "✨ الصفحة الحية" },
+          { id: "edit", label: "⚙️ إعدادات إضافية" },
         ].map((t) => (
           <button
             key={t.id}
@@ -627,6 +623,13 @@ function AdminPortfolio() {
           </div>
         </>
       )}
+
+      {/* زر الحفظ — أسفل الصفحة */}
+      <div className="sticky bottom-0 z-30 -mx-1 mt-4 flex justify-end border-t border-border bg-background/90 py-3 backdrop-blur">
+        <Button onClick={savePage} className="gradient-hero text-brand-foreground shadow-brand">
+          <Save className="ml-2 h-4 w-4" /> حفظ كل التغييرات
+        </Button>
+      </div>
     </div>
   );
 }
