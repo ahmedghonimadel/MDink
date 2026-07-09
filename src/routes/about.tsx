@@ -4,6 +4,7 @@ import {
   Heart,
   Sparkles,
   Target,
+  CheckCircle2,
   Stethoscope,
   Search,
   HandHeart,
@@ -183,6 +184,18 @@ function AboutPage() {
     { icon: Sparkles, label_ar: "قيمنا", label_en: "Values", text: L("values") },
   ];
 
+  // "ما يميزنا" و"كيف نعمل": من قاعدة البيانات إن وُجدت، وإلا الافتراضي الثابت
+  const differentiators: any[] = Array.isArray(c[`differentiators_${locale}`])
+    ? c[`differentiators_${locale}`]
+    : DIFFERENTIATORS.map((d) => ({
+        t: locale === "en" ? d.en : d.ar,
+        d: locale === "en" ? d.den : d.dar,
+        icon: d.icon,
+      }));
+  const processSteps: string[] = Array.isArray(c[`process_${locale}`])
+    ? c[`process_${locale}`]
+    : PROCESS.map((p) => (locale === "en" ? p.en : p.ar));
+
   return (
     <MarketingLayout>
       {/* Hero */}
@@ -217,21 +230,22 @@ function AboutPage() {
             <SectionHeader title={pick("ما الذي يميزنا؟", "What Makes Us Different?")} />
           </Reveal>
           <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {DIFFERENTIATORS.map((d, i) => (
-              <Reveal
-                key={d.en}
-                delay={(i % 3) * 90}
-                className="rounded-2xl border border-border bg-background p-6 shadow-card transition-all hover:-translate-y-1 hover:border-brand/40 hover:shadow-brand"
-              >
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-brand/10 text-brand">
-                  <d.icon className="h-6 w-6" />
-                </div>
-                <h3 className="mt-4 text-base font-bold">{pick(d.ar, d.en)}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                  {pick(d.dar, d.den)}
-                </p>
-              </Reveal>
-            ))}
+            {differentiators.map((d: any, i: number) => {
+              const Ico = d.icon ?? CheckCircle2;
+              return (
+                <Reveal
+                  key={i}
+                  delay={(i % 3) * 90}
+                  className="rounded-2xl border border-border bg-background p-6 shadow-card transition-all hover:-translate-y-1 hover:border-brand/40 hover:shadow-brand"
+                >
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-brand/10 text-brand">
+                    <Ico className="h-6 w-6" />
+                  </div>
+                  <h3 className="mt-4 text-base font-bold">{d.t}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{d.d}</p>
+                </Reveal>
+              );
+            })}
           </div>
         </div>
       </section>
@@ -322,17 +336,16 @@ function AboutPage() {
             <SectionHeader title={pick("كيف نعمل معك؟", "How We Work With You")} />
           </Reveal>
           <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-5">
-            {PROCESS.map((step, i) => (
+            {processSteps.map((step: string, i: number) => (
               <Reveal
-                key={step.en}
+                key={i}
                 delay={i * 80}
                 className="relative rounded-2xl border border-border bg-background p-6 shadow-card transition-all hover:-translate-y-1 hover:border-brand/40"
               >
                 <div className="flex h-10 w-10 items-center justify-center rounded-full gradient-hero text-base font-bold text-brand-foreground">
                   {i + 1}
                 </div>
-                <step.icon className="mt-4 h-5 w-5 text-brand" />
-                <p className="mt-2 text-sm font-semibold leading-relaxed">{pick(step.ar, step.en)}</p>
+                <p className="mt-4 text-sm font-semibold leading-relaxed">{step}</p>
               </Reveal>
             ))}
           </div>

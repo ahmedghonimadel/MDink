@@ -55,7 +55,7 @@ const emptyMember = {
 function AboutAdmin() {
   const db = supabase as any;
   const qc = useQueryClient();
-  const [content, setContent] = useState(defaults);
+  const [content, setContent] = useState<Record<string, any>>(defaults);
   const [tab, setTab] = useState("live");
   const set = (k: string, v: string) => setContent((c) => ({ ...c, [k]: v }));
   const [editingMemberId, setEditingMemberId] = useState<string | null>(null);
@@ -178,23 +178,18 @@ function AboutAdmin() {
 
   return (
     <div className="space-y-6">
-      <header className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-3xl font-bold">إدارة من نحن وفريق العمل</h1>
-          <p className="mt-1 text-muted-foreground">
-            نصوص الصفحة والفريق الظاهر للزوار بالعربية والإنجليزية.
-          </p>
-        </div>
-        <Button onClick={saveContent} className="gradient-hero text-brand-foreground shadow-brand">
-          <Save className="ml-2 h-4 w-4" /> حفظ كل التغييرات
-        </Button>
+      <header>
+        <h1 className="text-3xl font-bold">إدارة من نحن وفريق العمل</h1>
+        <p className="mt-1 text-muted-foreground">
+          كل الأقسام والفريق — بالعربية والإنجليزية، بنفس شكل الموقع.
+        </p>
       </header>
 
       {/* تبويبات */}
       <div className="flex flex-wrap gap-2">
         {[
-          { id: "live", label: "✨ معاينة حية" },
-          { id: "edit", label: "تعديل تفصيلي" },
+          { id: "live", label: "✨ الصفحة الحية" },
+          { id: "edit", label: "⚙️ إعدادات إضافية" },
         ].map((t) => (
           <button
             key={t.id}
@@ -210,7 +205,9 @@ function AboutAdmin() {
         ))}
       </div>
 
-      {tab === "live" && <AboutLivePreview content={content} set={set} />}
+      {tab === "live" && (
+        <AboutLivePreview content={content} set={set} setContent={setContent} team={team} />
+      )}
 
       {tab === "edit" && (
         <>
@@ -539,6 +536,13 @@ function AboutAdmin() {
           </section>
         </>
       )}
+
+      {/* زر الحفظ — أسفل الصفحة */}
+      <div className="sticky bottom-0 z-30 -mx-1 mt-4 flex justify-end border-t border-border bg-background/90 py-3 backdrop-blur">
+        <Button onClick={saveContent} className="gradient-hero text-brand-foreground shadow-brand">
+          <Save className="ml-2 h-4 w-4" /> حفظ كل التغييرات
+        </Button>
+      </div>
     </div>
   );
 }
