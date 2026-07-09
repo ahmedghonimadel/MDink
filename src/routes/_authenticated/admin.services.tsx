@@ -195,25 +195,20 @@ function AdminServices() {
       { onConflict: "page_slug,section_key" },
     );
     if (error) return toast.error(error.message);
-    qc.invalidateQueries({ queryKey: ["cms-page", "services_page"] });
-    qc.invalidateQueries({ queryKey: ["cms-page-public", "services_page"] });
-    toast.success("تم حفظ عناوين الصفحة ✓");
+    qc.invalidateQueries({ queryKey: ["page-sections-admin", "services"] });
+    qc.invalidateQueries({ queryKey: ["page-sections-public", "services"] });
+    toast.success("تم حفظ التغييرات ✓");
   }
 
   const setP = (k: string, v: string) => setPage((p) => ({ ...p, [k]: v }));
 
   return (
     <div className="space-y-6">
-      <header className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-3xl font-bold">إدارة خدمات MDink</h1>
-          <p className="mt-1 text-muted-foreground">
-            تحكم كامل في كروت الخدمات + عنوان الصفحة — بالعربي والإنجليزي.
-          </p>
-        </div>
-        <Button onClick={savePage} className="gradient-hero text-brand-foreground shadow-brand">
-          <Save className="ml-2 h-4 w-4" /> حفظ عناوين الصفحة
-        </Button>
+      <header>
+        <h1 className="text-3xl font-bold">إدارة خدمات MDink</h1>
+        <p className="mt-1 text-muted-foreground">
+          تحكم كامل في كل الأقسام — بالعربي والإنجليزي، بنفس شكل الموقع.
+        </p>
       </header>
 
       {/* تبويبات */}
@@ -502,6 +497,13 @@ function AdminServices() {
           </div>
         </>
       )}
+
+      {/* زر الحفظ — أسفل الصفحة */}
+      <div className="sticky bottom-0 z-30 -mx-1 mt-4 flex justify-end border-t border-border bg-background/90 py-3 backdrop-blur">
+        <Button onClick={savePage} className="gradient-hero text-brand-foreground shadow-brand">
+          <Save className="ml-2 h-4 w-4" /> حفظ كل التغييرات
+        </Button>
+      </div>
     </div>
   );
 }

@@ -279,8 +279,10 @@ function ServicesPage() {
   const L = (base: string) => c[`${base}_${locale}`] ?? c[`${base}_ar`] ?? "";
   // نعرض خدمات الـ DB لو كانت 6 أو أكثر، وإلا نستخدم القائمة الكاملة المدمجة
   const list = services && services.length >= 6 ? services : fallbackServices;
-  const audienceItems = locale === "en" ? audience.items_en : audience.items_ar;
-  const stepList = locale === "en" ? steps.en : steps.ar;
+  const audienceTitle = c[`audience_title_${locale}`] ?? (locale === "en" ? audience.title_en : audience.title_ar);
+  const audienceItems = c[`audience_items_${locale}`] ?? (locale === "en" ? audience.items_en : audience.items_ar);
+  const stepList = c[`steps_${locale}`] ?? (locale === "en" ? steps.en : steps.ar);
+  const contentItems = c[`content_items_${locale}`] ?? contentFeatures.map((f) => (locale === "en" ? f.en : f.ar));
 
   return (
     <MarketingLayout>
@@ -298,11 +300,9 @@ function ServicesPage() {
 
           {/* Audience strip */}
           <Reveal delay={120} className="mt-9">
-            <div className="text-sm font-semibold text-brand">
-              {locale === "en" ? audience.title_en : audience.title_ar}
-            </div>
+            <div className="text-sm font-semibold text-brand">{audienceTitle}</div>
             <div className="mt-3 flex flex-wrap gap-2">
-              {audienceItems.map((item) => (
+              {audienceItems.map((item: string) => (
                 <span
                   key={item}
                   className="rounded-full border border-brand/25 bg-brand/5 px-3.5 py-1.5 text-xs font-medium text-foreground transition-colors hover:border-brand/50 hover:bg-brand/10 sm:text-sm"
@@ -368,27 +368,32 @@ function ServicesPage() {
         <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
           <Reveal className="mx-auto max-w-3xl text-center">
             <h2 className="text-2xl font-bold sm:text-3xl">
-              {locale === "en" ? "Real content from inside your clinic" : "محتوى حقيقي من داخل عيادتك"}
+              {c[`content_title_${locale}`] ??
+                (locale === "en" ? "Real content from inside your clinic" : "محتوى حقيقي من داخل عيادتك")}
             </h2>
             <p className="mt-4 text-sm leading-relaxed text-muted-foreground sm:text-base">
-              {locale === "en"
-                ? "We don't rely on generic designs alone. The MDink Solutions team helps you produce real content from inside the clinic or center: the doctor, the team, the equipment, the space, and the service experience — so your digital presence looks more trustworthy and professional."
-                : "لا نعتمد على تصميمات عامة فقط. فريق MDink Solutions يساعدك في إنتاج محتوى حقيقي من داخل العيادة أو المركز: تصوير الطبيب، فريق العمل، الأجهزة، المكان، وتجربة الخدمة — ليظهر حضورك الرقمي بشكل أكثر ثقة واحتراف."}
+              {c[`content_text_${locale}`] ??
+                (locale === "en"
+                  ? "We don't rely on generic designs alone. The MDink Solutions team helps you produce real content from inside the clinic or center: the doctor, the team, the equipment, the space, and the service experience — so your digital presence looks more trustworthy and professional."
+                  : "لا نعتمد على تصميمات عامة فقط. فريق MDink Solutions يساعدك في إنتاج محتوى حقيقي من داخل العيادة أو المركز: تصوير الطبيب، فريق العمل، الأجهزة، المكان، وتجربة الخدمة — ليظهر حضورك الرقمي بشكل أكثر ثقة واحتراف.")}
             </p>
           </Reveal>
           <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {contentFeatures.map((f, i) => (
-              <Reveal
-                key={f.ar}
-                delay={(i % 4) * 90}
-                className="rounded-2xl border border-border bg-background p-6 text-center shadow-card transition-all hover:-translate-y-1 hover:border-brand/40"
-              >
-                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-brand/10 text-brand">
-                  <f.icon className="h-6 w-6" />
-                </div>
-                <div className="mt-4 text-sm font-semibold">{locale === "en" ? f.en : f.ar}</div>
-              </Reveal>
-            ))}
+            {contentItems.map((label: string, i: number) => {
+              const Ico = contentFeatures[i % contentFeatures.length].icon;
+              return (
+                <Reveal
+                  key={i}
+                  delay={(i % 4) * 90}
+                  className="rounded-2xl border border-border bg-background p-6 text-center shadow-card transition-all hover:-translate-y-1 hover:border-brand/40"
+                >
+                  <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-brand/10 text-brand">
+                    <Ico className="h-6 w-6" />
+                  </div>
+                  <div className="mt-4 text-sm font-semibold">{label}</div>
+                </Reveal>
+              );
+            })}
           </div>
         </div>
       </section>
@@ -401,7 +406,7 @@ function ServicesPage() {
           </h2>
         </Reveal>
         <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-5">
-          {stepList.map((step, i) => (
+          {stepList.map((step: string, i: number) => (
             <Reveal
               key={step}
               delay={i * 80}

@@ -67,6 +67,46 @@ export function ServicesLivePreview({
     refresh();
   }
 
+  // القيم الافتراضية لأقسام محتوى الصفحة (نفس /services) لعرضها لو الداتابيز فاضية
+  const D: Record<string, { ar: any; en: any }> = {
+    audience_title: { ar: "نخدم", en: "We serve" },
+    audience_items: {
+      ar: ["أطباء مستقلين", "عيادات خاصة", "مراكز طبية", "مجمعات عيادات", "مستشفيات", "عيادات نسائية", "مراكز تجميل", "مراكز أسنان", "عيادات جلدية", "مراكز علاج طبيعي"],
+      en: ["Independent doctors", "Private clinics", "Medical centers", "Polyclinics", "Hospitals", "Women's clinics", "Aesthetic centers", "Dental centers", "Dermatology clinics", "Physiotherapy centers"],
+    },
+    content_title: { ar: "محتوى حقيقي من داخل عيادتك", en: "Real content from inside your clinic" },
+    content_text: {
+      ar: "لا نعتمد على تصميمات عامة فقط. فريق MDink Solutions يساعدك في إنتاج محتوى حقيقي من داخل العيادة أو المركز: تصوير الطبيب، فريق العمل، الأجهزة، المكان، وتجربة الخدمة — ليظهر حضورك الرقمي بشكل أكثر ثقة واحتراف.",
+      en: "We don't rely on generic designs alone. The MDink Solutions team helps you produce real content from inside the clinic or center: the doctor, the team, the equipment, the space, and the service experience — so your digital presence looks more trustworthy and professional.",
+    },
+    content_items: {
+      ar: ["تصوير فوتوغرافي احترافي", "فيديوهات قصيرة وريلز", "جرافيك طبي متناسق", "محتوى مناسب للإعلانات والسوشيال"],
+      en: ["Professional photography", "Short videos & reels", "Consistent medical graphics", "Content ready for ads & social"],
+    },
+    steps: {
+      ar: ["نفهم تخصصك وجمهورك", "نجهز الخطة والمحتوى", "نصمم ونصور ونبني", "نطلق ونقيس النتائج", "نطور باستمرار"],
+      en: ["We understand your specialty and audience", "We prepare the plan and content", "We design, shoot, and build", "We launch and measure results", "We keep improving"],
+    },
+    cta_title: { ar: "جاهز تبني حضور طبي يليق بثقة مرضاك؟", en: "Ready to build a medical presence worthy of your patients' trust?" },
+    cta_text: {
+      ar: "سواء كنت طبيبًا مستقلًا، عيادة، مركزًا طبيًا، مجمع عيادات، أو مستشفى — نساعدك في بناء منظومة رقمية واضحة، موثوقة، وقابلة للنمو.",
+      en: "Whether you are an independent doctor, a clinic, a medical center, a polyclinic, or a hospital — we help you build a clear, trustworthy, and scalable digital system.",
+    },
+    cta_primary: { ar: "احجز استشارة مجانية", en: "Book a free consultation" },
+    cta_secondary: { ar: "شاهد أعمالنا", en: "View our work" },
+  };
+  const getText = (base: string) => page[`${base}_${lang}`] ?? D[base][lang];
+  const getArr = (base: string): string[] => {
+    const v = page[`${base}_items_${lang}`] ?? page[`${base}_${lang}`];
+    return Array.isArray(v) ? v : (D[`${base}_items`]?.[lang] ?? D[base]?.[lang]);
+  };
+  const setArrField = (key: string, arr: any[]) => setPage((p) => ({ ...p, [key]: arr }));
+  const updArr = (key: string, cur: string[], i: number, val: string) => {
+    const a = [...cur];
+    a[i] = val;
+    setArrField(key, a);
+  };
+
   return (
     <div className="space-y-6">
       {/* شريط أدوات */}
@@ -199,6 +239,162 @@ export function ServicesLivePreview({
             <Plus className="h-8 w-8" />
             <span className="text-sm font-semibold">إضافة خدمة</span>
           </button>
+        </div>
+      </section>
+
+      {/* نخدم (Audience) */}
+      <section className="rounded-3xl border border-border gradient-soft p-8">
+        <EditableText
+          value={getText("audience_title")}
+          onSave={(v) => setP(`audience_title_${lang}`, v)}
+          placeholder="عنوان (نخدم)"
+          className="block text-sm font-semibold text-brand"
+        />
+        <div className="mt-3 flex flex-wrap gap-2">
+          {getArr("audience").map((item: string, i: number) => {
+            const arr = getArr("audience");
+            return (
+              <span
+                key={i}
+                className="group/item relative rounded-full border border-brand/25 bg-brand/5 px-3.5 py-1.5 text-xs font-medium"
+              >
+                <EditableText value={item} onSave={(v) => updArr(`audience_items_${lang}`, arr, i, v)} placeholder="فئة" />
+                <button
+                  type="button"
+                  onClick={() => setArrField(`audience_items_${lang}`, arr.filter((_: any, j: number) => j !== i))}
+                  className="absolute -right-1.5 -top-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[10px] text-white opacity-0 group-hover/item:opacity-100"
+                >
+                  ×
+                </button>
+              </span>
+            );
+          })}
+          <button
+            type="button"
+            onClick={() => setArrField(`audience_items_${lang}`, [...getArr("audience"), ""])}
+            className="rounded-full border border-dashed border-brand/40 px-3 py-1 text-xs text-brand hover:bg-brand/5"
+          >
+            + إضافة
+          </button>
+        </div>
+      </section>
+
+      {/* محتوى حقيقي (Content) */}
+      <section className="rounded-2xl border-y border-border bg-card p-8 text-center">
+        <EditableText
+          as="h2"
+          value={getText("content_title")}
+          onSave={(v) => setP(`content_title_${lang}`, v)}
+          placeholder="عنوان القسم"
+          className="block text-2xl font-bold sm:text-3xl"
+        />
+        <EditableText
+          as="p"
+          multiline
+          value={getText("content_text")}
+          onSave={(v) => setP(`content_text_${lang}`, v)}
+          placeholder="نص القسم"
+          className="mx-auto mt-4 block max-w-3xl text-sm leading-relaxed text-muted-foreground sm:text-base"
+        />
+        <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          {getArr("content").map((label: string, i: number) => {
+            const arr = getArr("content");
+            return (
+              <div key={i} className="group/item relative rounded-2xl border border-border bg-background p-6 text-center shadow-card">
+                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-brand/10 text-brand">
+                  <CheckCircle2 className="h-6 w-6" />
+                </div>
+                <EditableText
+                  value={label}
+                  onSave={(v) => updArr(`content_items_${lang}`, arr, i, v)}
+                  placeholder="ميزة"
+                  className="mt-4 block text-sm font-semibold"
+                />
+                <button
+                  type="button"
+                  onClick={() => setArrField(`content_items_${lang}`, arr.filter((_: any, j: number) => j !== i))}
+                  className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-destructive text-white opacity-0 group-hover/item:opacity-100"
+                >
+                  ×
+                </button>
+              </div>
+            );
+          })}
+          <button
+            type="button"
+            onClick={() => setArrField(`content_items_${lang}`, [...getArr("content"), ""])}
+            className="flex min-h-[120px] items-center justify-center gap-1 rounded-2xl border-2 border-dashed border-brand/40 text-sm text-brand hover:bg-brand/5"
+          >
+            <Plus className="h-5 w-5" /> إضافة
+          </button>
+        </div>
+      </section>
+
+      {/* كيف نبدأ؟ (Steps) */}
+      <section>
+        <h2 className="text-center text-2xl font-bold sm:text-3xl">
+          {lang === "en" ? "How do we start?" : "كيف نبدأ؟"}
+        </h2>
+        <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-5">
+          {getArr("steps").map((step: string, i: number) => {
+            const arr = getArr("steps");
+            return (
+              <div key={i} className="group/item relative rounded-2xl border border-border bg-card p-6 shadow-card">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full gradient-hero text-base font-bold text-brand-foreground">
+                  {i + 1}
+                </div>
+                <EditableText
+                  as="p"
+                  multiline
+                  value={step}
+                  onSave={(v) => updArr(`steps_${lang}`, arr, i, v)}
+                  placeholder="خطوة"
+                  className="mt-4 block text-sm font-medium leading-relaxed"
+                />
+                <button
+                  type="button"
+                  onClick={() => setArrField(`steps_${lang}`, arr.filter((_: any, j: number) => j !== i))}
+                  className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-destructive text-white opacity-0 group-hover/item:opacity-100"
+                >
+                  ×
+                </button>
+              </div>
+            );
+          })}
+          <button
+            type="button"
+            onClick={() => setArrField(`steps_${lang}`, [...getArr("steps"), ""])}
+            className="flex min-h-[120px] items-center justify-center gap-1 rounded-2xl border-2 border-dashed border-brand/40 text-sm text-brand hover:bg-brand/5"
+          >
+            <Plus className="h-5 w-5" /> خطوة
+          </button>
+        </div>
+      </section>
+
+      {/* دعوة الإجراء (CTA) */}
+      <section className="overflow-hidden rounded-3xl gradient-hero p-10 text-center text-brand-foreground shadow-brand sm:p-16">
+        <EditableText
+          as="h2"
+          value={getText("cta_title")}
+          onSave={(v) => setP(`cta_title_${lang}`, v)}
+          placeholder="عنوان دعوة الإجراء"
+          className="block text-2xl font-bold sm:text-4xl"
+        />
+        <EditableText
+          as="p"
+          multiline
+          value={getText("cta_text")}
+          onSave={(v) => setP(`cta_text_${lang}`, v)}
+          placeholder="نص دعوة الإجراء"
+          className="mx-auto mt-3 block max-w-2xl opacity-90"
+        />
+        <div className="mt-8 flex flex-wrap justify-center gap-3">
+          <span className="inline-flex items-center rounded-md bg-white px-8 py-2.5 text-sm font-medium text-brand shadow">
+            <EditableText value={getText("cta_primary")} onSave={(v) => setP(`cta_primary_${lang}`, v)} placeholder="الزر الأساسي" />
+          </span>
+          <span className="inline-flex items-center rounded-md border border-white/40 px-8 py-2.5 text-sm font-medium text-brand-foreground">
+            <EditableText value={getText("cta_secondary")} onSave={(v) => setP(`cta_secondary_${lang}`, v)} placeholder="الزر الثانوي" />
+          </span>
         </div>
       </section>
     </div>
