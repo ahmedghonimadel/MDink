@@ -171,6 +171,43 @@ export function ServicesLivePreview({
         </p>
       </section>
 
+      {/* نخدم (Audience) — نفس ترتيب صفحة /services: تحت الهيرو مباشرةً فوق الخدمات */}
+      <section className="rounded-3xl border border-border gradient-soft p-8">
+        <EditableText
+          value={getText("audience_title")}
+          onSave={(v) => setP(`audience_title_${lang}`, v)}
+          placeholder="عنوان (نخدم)"
+          className="block text-sm font-semibold text-brand"
+        />
+        <div className="mt-3 flex flex-wrap gap-2">
+          {getArr("audience").map((item: string, i: number) => {
+            const arr = getArr("audience");
+            return (
+              <span
+                key={i}
+                className="group/item relative rounded-full border border-brand/25 bg-brand/5 px-3.5 py-1.5 text-xs font-medium"
+              >
+                <EditableText value={item} onSave={(v) => updArr(`audience_items_${lang}`, arr, i, v)} placeholder="فئة" />
+                <button
+                  type="button"
+                  onClick={() => setArrField(`audience_items_${lang}`, arr.filter((_: any, j: number) => j !== i))}
+                  className="absolute -right-1.5 -top-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[10px] text-white opacity-0 group-hover/item:opacity-100"
+                >
+                  ×
+                </button>
+              </span>
+            );
+          })}
+          <button
+            type="button"
+            onClick={() => setArrField(`audience_items_${lang}`, [...getArr("audience"), ""])}
+            className="rounded-full border border-dashed border-brand/40 px-3 py-1 text-xs text-brand hover:bg-brand/5"
+          >
+            + إضافة
+          </button>
+        </div>
+      </section>
+
       {/* شبكة الخدمات — نفس تصميم الموقع */}
       <section>
         <div className="grid items-stretch gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -293,43 +330,6 @@ export function ServicesLivePreview({
           >
             <Plus className="h-8 w-8" />
             <span className="text-sm font-semibold">إضافة خدمة</span>
-          </button>
-        </div>
-      </section>
-
-      {/* نخدم (Audience) */}
-      <section className="rounded-3xl border border-border gradient-soft p-8">
-        <EditableText
-          value={getText("audience_title")}
-          onSave={(v) => setP(`audience_title_${lang}`, v)}
-          placeholder="عنوان (نخدم)"
-          className="block text-sm font-semibold text-brand"
-        />
-        <div className="mt-3 flex flex-wrap gap-2">
-          {getArr("audience").map((item: string, i: number) => {
-            const arr = getArr("audience");
-            return (
-              <span
-                key={i}
-                className="group/item relative rounded-full border border-brand/25 bg-brand/5 px-3.5 py-1.5 text-xs font-medium"
-              >
-                <EditableText value={item} onSave={(v) => updArr(`audience_items_${lang}`, arr, i, v)} placeholder="فئة" />
-                <button
-                  type="button"
-                  onClick={() => setArrField(`audience_items_${lang}`, arr.filter((_: any, j: number) => j !== i))}
-                  className="absolute -right-1.5 -top-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[10px] text-white opacity-0 group-hover/item:opacity-100"
-                >
-                  ×
-                </button>
-              </span>
-            );
-          })}
-          <button
-            type="button"
-            onClick={() => setArrField(`audience_items_${lang}`, [...getArr("audience"), ""])}
-            className="rounded-full border border-dashed border-brand/40 px-3 py-1 text-xs text-brand hover:bg-brand/5"
-          >
-            + إضافة
           </button>
         </div>
       </section>
