@@ -270,15 +270,6 @@ const CATEGORY_META: Record<
   monthly_work: { ar: "أعمال شهرية", en: "Monthly Work", icon: CalendarRange },
 };
 
-const FILTERS = [
-  { key: "all", ar: "الكل", en: "All" },
-  { key: "medical_websites", ar: "مواقع طبية", en: "Medical Websites" },
-  { key: "social_media", ar: "سوشيال ميديا", en: "Social Media" },
-  { key: "medical_photography", ar: "تصوير طبي", en: "Medical Photography" },
-  { key: "seo_results", ar: "SEO ونتائج بحث", en: "SEO & Search Results" },
-  { key: "monthly_work", ar: "أعمال شهرية", en: "Monthly Work" },
-];
-
 const STATS = [
   { icon: Globe, ar: "4+ مواقع طبية", en: "4+ Medical Websites" },
   { icon: Facebook, ar: "صفحات سوشيال نشطة", en: "Active Social Pages" },
@@ -367,8 +358,29 @@ function PortfolioPage() {
   };
   const pick = (ar: string, en: string) => (locale === "en" ? en : ar);
 
-  const featured = items.filter((i) => i.is_featured && i.category === "medical_websites");
-  const rest = items.filter((i) => !(i.is_featured && i.category === "medical_websites"));
+  // ترتيب/إخفاء فئات الأعمال من لوحة التحكم (page_sections)
+  const DEFAULT_CATEGORIES_ORDER = [
+    "medical_websites",
+    "social_media",
+    "medical_photography",
+    "seo_results",
+    "monthly_work",
+  ];
+  const catOrder: string[] = Array.isArray(c.categories_order)
+    ? c.categories_order
+    : DEFAULT_CATEGORIES_ORDER;
+  const catHidden: string[] = Array.isArray(c.categories_hidden) ? c.categories_hidden : [];
+  const visibleCats = catOrder.filter((k) => CATEGORY_META[k] && !catHidden.includes(k));
+  // فلاتر ديناميكية: "الكل" ثم الفئات الظاهرة بالترتيب المحدد
+  const filters = [
+    { key: "all", ar: "الكل", en: "All" },
+    ...visibleCats.map((k) => ({ key: k, ar: CATEGORY_META[k].ar, en: CATEGORY_META[k].en })),
+  ];
+  // استبعاد أعمال الفئات المخفية من الصفحة كلها
+  const shownItems = items.filter((i) => !catHidden.includes(i.category));
+
+  const featured = shownItems.filter((i) => i.is_featured && i.category === "medical_websites");
+  const rest = shownItems.filter((i) => !(i.is_featured && i.category === "medical_websites"));
   const visibleRest =
     filter === "all" ? rest : rest.filter((i) => i.category === filter);
   // عند اختيار "مواقع طبية" أظهر الـ featured أيضًا داخل الشبكة
@@ -412,7 +424,7 @@ function PortfolioPage() {
       {/* Filters */}
       <section className="mx-auto max-w-7xl px-4 pt-12 sm:px-6">
         <Reveal className="flex flex-wrap gap-2">
-          {FILTERS.map((f) => {
+          {filters.map((f) => {
             const active = filter === f.key;
             return (
               <button
