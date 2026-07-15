@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
-import { useState, useMemo } from "react";
+import { useQuery, useInfiniteQuery } from "@tanstack/react-query";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { CalendarDays, ArrowLeft, Clock, Search, User, Newspaper } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { getPageSeo } from "@/lib/content";
@@ -117,50 +117,82 @@ function BlogPage() {
           featured: "مقال مميز",
         };
 
-  const { data: rows = [], isLoading } = useQuery({
-    queryKey: ["public-blog-posts-v3"],
-    queryFn: async () => {
-      const { data, error } = await db
+  // بحث بتأخير بسيط حتى لا نطلب من القاعدة مع كل حرف
+  const [debouncedQ, setDebouncedQ] = useState("");
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedQ(q.trim()), 300);
+    return () => clearTimeout(t);
+  }, [q]);
+  const catId = cat !== "all" ? (categories.find((c: any) => c.name === cat)?.id ?? null) : null;
+
+  const mapRow = (p: any) => ({
+    ...p,
+    title_ar: p.title,
+    title_en: p.title_en || p.title,
+    excerpt_ar: p.excerpt,
+    excerpt_en: p.excerpt_en || p.excerpt,
+    category: p.blog_categories?.name ?? "",
+    category_ar: p.blog_categories?.name ?? "",
+    category_en: p.blog_categories?.name_en ?? p.blog_categories?.name ?? "",
+    sort_order: p.display_order,
+    author_name_ar: p.author,
+    author_name_en: p.author,
+    tags_ar: [],
+    tags_en: [],
+  });
+
+  const PAGE_SIZE = 10;
+  const {
+    data: pageData,
+    isLoading,
+    hasNextPage,
+    fetchNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery({
+    queryKey: ["public-blog-posts-v3", catId, debouncedQ],
+    initialPageParam: 0,
+    queryFn: async ({ pageParam }) => {
+      let query = db
         .from("blog_posts")
-        .select("*, blog_categories(name, name_en, slug)")
+        .select("*, blog_categories(name, name_en, slug)", { count: "exact" })
         .eq("is_published", true)
-        .order("display_order", { ascending: true });
+        .order("display_order", { ascending: true })
+        .range(pageParam as number, (pageParam as number) + PAGE_SIZE - 1);
+      if (catId) query = query.eq("category_id", catId);
+      if (debouncedQ) {
+        const esc = debouncedQ.replace(/[%,]/g, " ");
+        query = query.or(`title.ilike.%${esc}%,title_en.ilike.%${esc}%,excerpt.ilike.%${esc}%`);
+      }
+      const { data, error, count } = await query;
       if (error) throw error;
-      // خريطة حقول blog_posts إلى ما تتوقعه الصفحة
-      return (data ?? []).map((p: any) => ({
-        ...p,
-        title_ar: p.title,
-        title_en: p.title_en || p.title,
-        excerpt_ar: p.excerpt,
-        excerpt_en: p.excerpt_en || p.excerpt,
-        category: p.blog_categories?.name ?? "",
-        category_ar: p.blog_categories?.name ?? "",
-        category_en: p.blog_categories?.name_en ?? p.blog_categories?.name ?? "",
-        sort_order: p.display_order,
-        author_name_ar: p.author,
-        author_name_en: p.author,
-        tags_ar: [],
-        tags_en: [],
-      }));
+      return { rows: (data ?? []).map(mapRow), count: count ?? 0, from: pageParam as number };
+    },
+    getNextPageParam: (last: any) => {
+      const loaded = last.from + last.rows.length;
+      return loaded < last.count ? loaded : undefined;
     },
   });
 
-  const filtered = useMemo(() => {
-    let list = rows as any[];
-    if (cat !== "all") list = list.filter((p) => (p.category_ar ?? p.category) === cat);
-    if (q.trim()) {
-      const needle = q.trim().toLowerCase();
-      list = list.filter((p) =>
-        [p.title_ar, p.title_en, p.excerpt_ar, p.excerpt_en, ...(p.tags_ar ?? [])]
-          .filter(Boolean)
-          .some((t: string) => t.toLowerCase().includes(needle)),
-      );
-    }
-    return list;
-  }, [rows, cat, q]);
-
-  const featured = filtered.find((p) => p.is_featured) ?? filtered[0];
-  const rest = filtered.filter((p) => p.id !== featured?.id);
+  const list: any[] = (pageData?.pages ?? []).flatMap((p: any) => p.rows);
+  // المقال المميّز من الصفحة الأولى فقط (يبقى ثابتًا أثناء تحميل المزيد)
+  const firstRows: any[] = pageData?.pages?.[0]?.rows ?? [];
+  const featured = firstRows.find((p) => p.is_featured) ?? firstRows[0];
+  const rest = list.filter((p) => p.id !== featured?.id);
+  const hasMore = !!hasNextPage;
+  const sentinelRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!hasMore) return;
+    const el = sentinelRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting && !isFetchingNextPage) fetchNextPage();
+      },
+      { rootMargin: "400px" },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [hasMore, isFetchingNextPage, list.length]);
 
   const fmtDate = (d?: string) =>
     d ? new Date(d).toLocaleDateString(copy.dateLocale, { year: "numeric", month: "long" }) : "";
@@ -227,7 +259,7 @@ function BlogPage() {
         )}
         {isLoading ? (
           <div className="text-muted-foreground">{copy.loading}</div>
-        ) : !filtered.length ? (
+        ) : !list.length ? (
           <div className="rounded-2xl border border-dashed border-border p-10 text-center text-muted-foreground">
             {copy.empty}
           </div>
@@ -317,6 +349,21 @@ function BlogPage() {
                     </Link>
                   </Reveal>
                 ))}
+              </div>
+            )}
+
+            {hasMore && (
+              <div ref={sentinelRef} className="mt-10 flex justify-center">
+                <button
+                  type="button"
+                  onClick={() => fetchNextPage()}
+                  disabled={isFetchingNextPage}
+                  className="rounded-full border border-border px-6 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:border-brand/40 hover:text-brand"
+                >
+                  {isFetchingNextPage
+                    ? locale === "en" ? "Loading…" : "جاري التحميل…"
+                    : locale === "en" ? "Load more" : "تحميل المزيد"}
+                </button>
               </div>
             )}
           </>

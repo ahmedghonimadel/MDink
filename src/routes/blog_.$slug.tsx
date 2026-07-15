@@ -341,10 +341,20 @@ function BlogDetail() {
             )}
             <h1 className="mt-4 text-3xl font-extrabold leading-tight sm:text-4xl">{title}</h1>
 
-            {/* meta */}
-            <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
+            {/* صورة الغلاف — تحت العنوان مباشرة */}
+            {post.cover_image_url && (
+              <img
+                src={post.cover_image_url}
+                alt={title}
+                loading="lazy"
+                className="mt-6 w-full rounded-2xl object-cover"
+              />
+            )}
+
+            {/* meta — الناشر والتاريخ أسفل الصورة */}
+            <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
               {author && (
-                <span className="inline-flex items-center gap-1">
+                <span className="inline-flex items-center gap-1 font-semibold text-foreground">
                   <User className="h-4 w-4" /> {author}
                 </span>
               )}
@@ -360,15 +370,6 @@ function BlogDetail() {
                 </span>
               ) : null}
             </div>
-
-            {post.cover_image_url && (
-              <img
-                src={post.cover_image_url}
-                alt={title}
-                loading="lazy"
-                className="mt-8 w-full rounded-2xl object-cover"
-              />
-            )}
 
             {/* Table of contents */}
             {toc.length > 2 && (

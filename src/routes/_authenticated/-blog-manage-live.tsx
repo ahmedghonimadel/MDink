@@ -1,4 +1,7 @@
-import { Plus, Pencil, Trash2, Eye, EyeOff, FolderCog, ExternalLink } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { useInfiniteQuery } from "@tanstack/react-query";
+import { Plus, Pencil, Trash2, Eye, EyeOff, FolderCog, ExternalLink, Search } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { openExternal } from "@/lib/external-links";
 
 /**
@@ -7,22 +10,84 @@ import { openExternal } from "@/lib/external-links";
  * وإدارة التصنيفات — كل إمكانيات التبويبات التانية في مكان واحد شبه الموقع.
  */
 export function BlogManageLive({
-  blogs,
   onEdit,
   onNew,
   onDelete,
   onTogglePublish,
   onCategories,
 }: {
-  blogs: any[];
   onEdit: (blog: any) => void;
   onNew: () => void;
   onDelete: (id: string) => void;
   onTogglePublish: (id: string, isPublished: boolean) => void;
   onCategories: () => void;
 }) {
-  const featured = blogs[0];
-  const rest = blogs.slice(1);
+  const db = supabase as any;
+  const [q, setQ] = useState("");
+  const [debouncedQ, setDebouncedQ] = useState("");
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedQ(q.trim()), 300);
+    return () => clearTimeout(t);
+  }, [q]);
+
+  const PAGE = 10;
+  const { data: pageData, isLoading, hasNextPage, fetchNextPage, isFetchingNextPage } =
+    useInfiniteQuery({
+      queryKey: ["admin-blog-posts-v2", debouncedQ],
+      initialPageParam: 0,
+      queryFn: async ({ pageParam }) => {
+        let query = db
+          .from("blog_posts")
+          .select("*, blog_categories(name, name_en)", { count: "exact" })
+          .order("created_at", { ascending: false })
+          .range(pageParam as number, (pageParam as number) + PAGE - 1);
+        if (debouncedQ) {
+          const esc = debouncedQ.replace(/[%,]/g, " ");
+          query = query.or(`title.ilike.%${esc}%,title_en.ilike.%${esc}%`);
+        }
+        const { data, error, count } = await query;
+        if (error) throw error;
+        const rows = (data ?? []).map((p: any) => ({
+          ...p,
+          title_ar: p.title,
+          title_en: p.title_en ?? "",
+          excerpt_ar: p.excerpt,
+          excerpt_en: p.excerpt_en ?? "",
+          content_ar: p.content,
+          content_en: p.content_en ?? "",
+          category_ar: p.blog_categories?.name ?? "",
+          category_en: p.blog_categories?.name_en ?? "",
+          status: p.is_published ? "published" : "draft",
+          sort_order: p.display_order,
+        }));
+        return { rows, count: count ?? 0, from: pageParam as number };
+      },
+      getNextPageParam: (last: any) => {
+        const loaded = last.from + last.rows.length;
+        return loaded < last.count ? loaded : undefined;
+      },
+    });
+
+  const all: any[] = (pageData?.pages ?? []).flatMap((p: any) => p.rows);
+  const featured = all[0];
+  const rest = all.slice(1);
+  const hasMore = !!hasNextPage;
+  const total = pageData?.pages?.[0]?.count ?? all.length;
+
+  const sentinelRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!hasMore) return;
+    const el = sentinelRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting && !isFetchingNextPage) fetchNextPage();
+      },
+      { rootMargin: "300px" },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [hasMore, isFetchingNextPage, all.length]);
 
   const Cover = ({ url, title, small }: { url?: string; title: string; small?: boolean }) =>
     url ? (
@@ -53,16 +118,29 @@ export function BlogManageLive({
     <div className="space-y-6">
       {/* شريط أدوات */}
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-dashed border-brand/40 bg-brand/5 p-3 text-sm text-muted-foreground">
-        <span>👇 كل المقالات بنفس شكل /blog. مرّري على أي مقال لأدوات التعديل/النشر/الحذف.</span>
-        <div className="flex gap-2">
+        <div className="relative min-w-[220px] flex-1">
+          <Search className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <input
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="ابحث باسم المقال…"
+            className="h-9 w-full rounded-full border border-border bg-background pr-9 pl-3 text-sm outline-none focus:border-brand/50"
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="hidden text-xs text-muted-foreground sm:inline">{total} مقال</span>
           <button type="button" onClick={onCategories} className="inline-flex items-center gap-1 rounded-full border border-border bg-card px-3 py-1.5 text-xs font-semibold hover:border-brand/40"><FolderCog className="h-3.5 w-3.5" /> التصنيفات</button>
           <button type="button" onClick={onNew} className="inline-flex items-center gap-1 rounded-full gradient-hero px-3 py-1.5 text-xs font-semibold text-brand-foreground shadow-brand"><Plus className="h-3.5 w-3.5" /> مقال جديد</button>
         </div>
       </div>
 
-      {!blogs.length ? (
+      {isLoading ? (
         <div className="rounded-2xl border border-dashed border-border p-12 text-center text-muted-foreground">
-          لا توجد مقالات بعد. اضغطي "مقال جديد" للبدء.
+          جاري التحميل…
+        </div>
+      ) : !all.length ? (
+        <div className="rounded-2xl border border-dashed border-border p-12 text-center text-muted-foreground">
+          {debouncedQ ? `لا توجد نتائج مطابقة لـ "${debouncedQ}".` : 'لا توجد مقالات بعد. اضغطي "مقال جديد" للبدء.'}
         </div>
       ) : (
         <>
@@ -108,6 +186,20 @@ export function BlogManageLive({
               <span className="text-sm font-semibold">مقال جديد</span>
             </button>
           </div>
+
+          {/* تحميل تدريجي: 10 مع السكرول + زر احتياطي */}
+          {hasMore && (
+            <div ref={sentinelRef} className="flex justify-center pt-2">
+              <button
+                type="button"
+                onClick={() => fetchNextPage()}
+                disabled={isFetchingNextPage}
+                className="rounded-full border border-border px-5 py-2 text-sm font-medium text-muted-foreground hover:border-brand/40 hover:text-brand"
+              >
+                {isFetchingNextPage ? "جاري التحميل…" : "تحميل المزيد"}
+              </button>
+            </div>
+          )}
         </>
       )}
     </div>
