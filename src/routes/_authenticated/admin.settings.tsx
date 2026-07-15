@@ -126,10 +126,13 @@ function AdminSettings() {
   // خريطة مفاتيح الواجهة ↔ أعمدة site_settings
   const KEY_TO_COL: Record<string, string> = {
     site_name: "brand_name",
+    site_name_en: "brand_name_en",
     site_logo: "logo_url",
     contact_phone: "phone",
     whatsapp_number: "whatsapp_number",
     contact_email: "email",
+    footer_about_text: "footer_about_text",
+    footer_about_text_en: "footer_about_text_en",
   };
   const { data, isLoading } = useQuery({
     queryKey: ["admin-site-settings-row"],

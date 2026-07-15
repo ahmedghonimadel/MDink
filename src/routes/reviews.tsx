@@ -198,14 +198,15 @@ function ReviewsPage() {
   });
 
   // خريطة الجدولين الجديدين إلى شكل T الذي تستخدمه الصفحة
+  // نستعمل الحقول الإنجليزية إن وُجدت، وإلا نرجع للعربي كخيار احتياطي
   const mappedVideos: T[] = (videoRows as any[]).map((v) => ({
     id: v.id,
     name_ar: v.client_name,
-    name_en: v.client_name,
+    name_en: v.client_name_en || v.client_name,
     role_ar: v.client_specialty || v.client_title || "",
-    role_en: v.client_specialty || v.client_title || "",
+    role_en: v.client_specialty_en || v.client_title_en || v.client_specialty || v.client_title || "",
     title_ar: v.client_title || "",
-    title_en: v.client_title || "",
+    title_en: v.client_title_en || v.client_title || "",
     media_type: "video",
     media_url: v.video_url,
     thumbnail_url: v.thumbnail_url,
@@ -215,15 +216,15 @@ function ReviewsPage() {
   const mappedWritten: T[] = (writtenRows as any[]).map((w) => ({
     id: w.id,
     name_ar: w.client_name,
-    name_en: w.client_name,
+    name_en: w.client_name_en || w.client_name,
     role_ar: w.client_specialty || w.client_title || "",
-    role_en: w.client_specialty || w.client_title || "",
+    role_en: w.client_specialty_en || w.client_title_en || w.client_specialty || w.client_title || "",
     title_ar: w.client_title || "",
-    title_en: w.client_title || "",
+    title_en: w.client_title_en || w.client_title || "",
     excerpt_ar: w.review_text || "",
-    excerpt_en: w.review_text || "",
+    excerpt_en: w.review_text_en || w.review_text || "",
     full_text_ar: w.review_text || "",
-    full_text_en: w.review_text || "",
+    full_text_en: w.review_text_en || w.review_text || "",
     media_type: "image",
     media_url: w.review_image_url,
     thumbnail_url: w.review_image_url,

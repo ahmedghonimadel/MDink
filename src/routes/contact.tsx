@@ -261,7 +261,9 @@ function ContactPage() {
           {(channels.length
             ? channels.map((ch: any) => ({
                 icon: pickIcon(ch.icon),
-                label: ch.label || ch.platform,
+                label:
+                  (locale === "en" ? (ch.label_en || ch.label) : (ch.label || ch.label_en)) ||
+                  ch.platform,
                 value: ch.username || ch.url,
                 url: ch.url,
               }))

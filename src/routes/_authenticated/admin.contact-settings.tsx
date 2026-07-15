@@ -61,7 +61,7 @@ function ContactSettingsAdmin() {
       return data.map((r: any) => ({
         ...r,
         label_ar: r.label,
-        label_en: r.label,
+        label_en: r.label_en ?? "",
         value: r.username,
         sort_order: r.display_order,
       }));
@@ -76,6 +76,7 @@ function ContactSettingsAdmin() {
     const payload = {
       platform: (form.label_en || form.label_ar).trim().toLowerCase(),
       label: form.label_ar.trim(),
+      label_en: form.label_en.trim() || null,
       username: form.value || null,
       url: form.url,
       icon: form.icon,

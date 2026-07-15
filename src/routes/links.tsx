@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { MarketingLayout } from "@/components/MarketingLayout";
 import { openExternal } from "@/lib/external-links";
+import { useLocale } from "@/lib/i18n";
 import { ExternalLink, Globe, Instagram, Facebook, Linkedin, Youtube, Music2 } from "lucide-react";
 
 export const Route = createFileRoute("/links")({
@@ -37,18 +38,21 @@ function iconFor(platform: string) {
 }
 
 function LinksPage() {
+  const { locale } = useLocale();
   const { data: links, isLoading } = useQuery({
     queryKey: ["public-links-from-social"],
     queryFn: async () => {
       const { data, error } = await (supabase as any)
         .from("social_links")
-        .select("id,label,username,url,platform,icon,display_order")
+        .select("id,label,label_en,username,url,platform,icon,display_order")
         .eq("is_active", true)
         .order("display_order");
       if (error) throw error;
       return (data ?? []).map((l: any) => ({
         id: l.id,
-        title: l.label ?? l.platform,
+        title:
+          (locale === "en" ? (l.label_en || l.label) : (l.label || l.label_en)) ||
+          l.platform,
         subtitle: l.username ?? "",
         url: l.url,
         platform_type: l.platform,

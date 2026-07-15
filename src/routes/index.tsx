@@ -245,7 +245,7 @@ function HomePage() {
 
   // آراء العملاء المختارة للظهور في الرئيسية (show_on_home + منشورة فقط)
   const { data: homeReviews = [] } = useQuery({
-    queryKey: ["home-testimonials"],
+    queryKey: ["home-testimonials", locale],
     queryFn: async () => {
       const vids =
         (await db
@@ -261,12 +261,14 @@ function HomePage() {
           .eq("is_active", true)
           .eq("show_on_home", true)
           .order("display_order")).data ?? [];
+      // نختار العربي/الإنجليزي حسب اللغة، مع رجوع للعربي كخيار احتياطي
+      const pickAny = (en: any, ar: any) => (locale === "en" ? (en || ar) : (ar || en)) || "";
       const mapped = [
         ...vids.map((v: any) => ({
           id: v.id,
           kind: "video" as const,
-          name: v.client_name,
-          role: v.client_specialty || v.client_title || "",
+          name: pickAny(v.client_name_en, v.client_name),
+          role: pickAny(v.client_specialty_en || v.client_title_en, v.client_specialty || v.client_title),
           text: v.short_text || "",
           rating: v.rating ?? 5,
           media_url: v.video_url,
@@ -276,9 +278,9 @@ function HomePage() {
         ...writ.map((w: any) => ({
           id: w.id,
           kind: "written" as const,
-          name: w.client_name,
-          role: w.client_specialty || w.client_title || "",
-          text: w.review_text || "",
+          name: pickAny(w.client_name_en, w.client_name),
+          role: pickAny(w.client_specialty_en || w.client_title_en, w.client_specialty || w.client_title),
+          text: pickAny(w.review_text_en, w.review_text),
           rating: w.rating ?? 5,
           media_url: w.review_image_url,
           thumbnail_url: w.review_image_url,
