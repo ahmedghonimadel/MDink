@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { MarketingLayout } from "@/components/MarketingLayout";
@@ -284,10 +285,15 @@ function ServicesPage() {
   const stepList = c[`steps_${locale}`] ?? (locale === "en" ? steps.en : steps.ar);
   const contentItems = c[`content_items_${locale}`] ?? contentFeatures.map((f) => (locale === "en" ? f.en : f.ar));
 
-  return (
-    <MarketingLayout>
-      {/* Hero */}
-      <section className="border-b border-border gradient-soft">
+  const order: string[] = Array.isArray(c.sections_order)
+    ? c.sections_order
+    : ["hero", "services", "content", "steps", "cta"];
+  const hidden: string[] = Array.isArray(c.sections_hidden) ? c.sections_hidden : [];
+
+  const sections: Record<string, () => ReactNode> = {
+    // الهيرو + شريط "نخدم"
+    hero: () => (
+      <section key="hero" className="border-b border-border gradient-soft">
         <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
           <Reveal>
             <h1 className="text-3xl font-extrabold leading-snug sm:text-4xl lg:text-5xl">
@@ -314,9 +320,10 @@ function ServicesPage() {
           </Reveal>
         </div>
       </section>
-
-      {/* Services grid */}
-      <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
+    ),
+    // شبكة الخدمات
+    services: () => (
+      <section key="services" className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
         <div className="grid items-stretch gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {list.map((service: any, i: number) => {
             const Icon = pickIcon(service.icon);
@@ -362,9 +369,10 @@ function ServicesPage() {
           })}
         </div>
       </section>
-
-      {/* Real content production — trust section */}
-      <section className="border-y border-border bg-card">
+    ),
+    // محتوى حقيقي من داخل عيادتك
+    content: () => (
+      <section key="content" className="border-y border-border bg-card">
         <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
           <Reveal className="mx-auto max-w-3xl text-center">
             <h2 className="text-2xl font-bold sm:text-3xl">
@@ -397,9 +405,10 @@ function ServicesPage() {
           </div>
         </div>
       </section>
-
-      {/* Process */}
-      <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
+    ),
+    // خطوات العمل (كيف نبدأ؟)
+    steps: () => (
+      <section key="steps" className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
         <Reveal className="text-center">
           <h2 className="text-2xl font-bold sm:text-3xl">
             {locale === "en" ? "How do we start?" : "كيف نبدأ؟"}
@@ -420,9 +429,10 @@ function ServicesPage() {
           ))}
         </div>
       </section>
-
-      {/* CTA */}
-      <section className="mx-auto max-w-7xl px-4 pb-20 sm:px-6">
+    ),
+    // دعوة الإجراء النهائية
+    cta: () => (
+      <section key="cta" className="mx-auto max-w-7xl px-4 pb-20 sm:px-6">
         <Reveal className="overflow-hidden rounded-3xl gradient-hero p-10 text-center text-brand-foreground shadow-brand sm:p-16">
           <h2 className="text-2xl font-bold sm:text-4xl">{L("cta_title")}</h2>
           <p className="mx-auto mt-3 max-w-2xl text-sm opacity-90 sm:text-base">{L("cta_text")}</p>
@@ -448,6 +458,12 @@ function ServicesPage() {
           </div>
         </Reveal>
       </section>
+    ),
+  };
+
+  return (
+    <MarketingLayout>
+      {order.filter((id) => !hidden.includes(id)).map((id) => sections[id]?.())}
     </MarketingLayout>
   );
 }
