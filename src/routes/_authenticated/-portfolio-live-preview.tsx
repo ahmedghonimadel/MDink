@@ -10,6 +10,7 @@ import { openExternal } from "@/lib/external-links";
 const CATEGORIES = [
   { key: "medical_websites", ar: "مواقع طبية", en: "Medical Websites" },
   { key: "social_media", ar: "سوشيال ميديا", en: "Social Media" },
+  { key: "reels", ar: "ريلز", en: "Reels" },
   { key: "medical_photography", ar: "تصوير طبي", en: "Medical Photography" },
   { key: "seo_results", ar: "SEO ونتائج بحث", en: "SEO & Search Results" },
   { key: "monthly_work", ar: "أعمال شهرية", en: "Monthly Work" },

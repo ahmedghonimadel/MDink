@@ -19,7 +19,6 @@ import {
   Star,
   Users,
   UserCog,
-  Video,
   X,
   type LucideIcon,
 } from "lucide-react";
@@ -119,9 +118,6 @@ function AuthenticatedLayout() {
               </SideLink>
               <SideLink to="/admin/reviews" icon={Star}>
                 آراء عملائنا
-              </SideLink>
-              <SideLink to="/admin/reels" icon={Video}>
-                الريلز
               </SideLink>
               <SideLink to="/admin/blogs" icon={Newspaper}>
                 المدونة

@@ -265,6 +265,7 @@ const CATEGORY_META: Record<
 > = {
   medical_websites: { ar: "مواقع طبية", en: "Medical Websites", icon: Globe },
   social_media: { ar: "سوشيال ميديا", en: "Social Media", icon: Facebook },
+  reels: { ar: "ريلز", en: "Reels", icon: Instagram },
   medical_photography: { ar: "تصوير طبي", en: "Medical Photography", icon: Video },
   seo_results: { ar: "SEO ونتائج بحث", en: "SEO & Search Results", icon: Search },
   monthly_work: { ar: "أعمال شهرية", en: "Monthly Work", icon: CalendarRange },
@@ -362,6 +363,7 @@ function PortfolioPage() {
   const DEFAULT_CATEGORIES_ORDER = [
     "medical_websites",
     "social_media",
+    "reels",
     "medical_photography",
     "seo_results",
     "monthly_work",
@@ -393,13 +395,13 @@ function PortfolioPage() {
         <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
           <Reveal>
             <div className="inline-flex items-center gap-2 rounded-full border border-accent/40 bg-accent/10 px-3 py-1 text-xs font-semibold text-accent-foreground">
-              <Award className="h-3.5 w-3.5" /> {pick(PAGE.badge_ar, PAGE.badge_en)}
+              <Award className="h-3.5 w-3.5" /> {L("badge_ar")}
             </div>
             <h1 className="mt-4 text-4xl font-extrabold sm:text-5xl">
-              {pick(PAGE.title_ar, PAGE.title_en)}
+              {L("title_ar")}
             </h1>
             <p className="mt-4 max-w-3xl text-base leading-relaxed text-muted-foreground sm:text-lg">
-              {pick(PAGE.intro_ar, PAGE.intro_en)}
+              {L("intro_ar")}
             </p>
           </Reveal>
 
@@ -449,7 +451,7 @@ function PortfolioPage() {
         <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6">
           <Reveal>
             <h2 className="text-2xl font-extrabold sm:text-3xl">
-              {pick(PAGE.featured_ar, PAGE.featured_en)}
+              {L("featured_ar")}
             </h2>
           </Reveal>
           <div className="mt-8 grid gap-6 md:grid-cols-2">
@@ -471,7 +473,7 @@ function PortfolioPage() {
       <section className="mx-auto max-w-7xl px-4 pb-16 sm:px-6">
         <Reveal>
           <h2 className="text-2xl font-extrabold sm:text-3xl">
-            {pick(PAGE.rest_ar, PAGE.rest_en)}
+            {L("rest_ar")}
           </h2>
         </Reveal>
         <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -490,13 +492,13 @@ function PortfolioPage() {
       {/* CTA */}
       <section className="mx-auto max-w-7xl px-4 pb-20 sm:px-6">
         <Reveal className="overflow-hidden rounded-3xl gradient-hero p-10 text-center text-brand-foreground shadow-brand sm:p-16">
-          <h2 className="text-2xl font-bold sm:text-4xl">{pick(PAGE.cta_title_ar, PAGE.cta_title_en)}</h2>
+          <h2 className="text-2xl font-bold sm:text-4xl">{L("cta_title_ar")}</h2>
           <p className="mx-auto mt-3 max-w-2xl text-sm opacity-90 sm:text-base">
-            {pick(PAGE.cta_text_ar, PAGE.cta_text_en)}
+            {L("cta_text_ar")}
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-3">
             <Button asChild size="lg" variant="secondary" className="transition-transform hover:-translate-y-0.5">
-              <Link to="/contact">{pick(PAGE.cta_primary_ar, PAGE.cta_primary_en)}</Link>
+              <Link to="/contact">{L("cta_primary_ar")}</Link>
             </Button>
             <Button
               asChild
@@ -505,7 +507,7 @@ function PortfolioPage() {
               className="border-white/40 bg-transparent text-brand-foreground transition-transform hover:-translate-y-0.5 hover:bg-white/10"
             >
               <Link to="/contact">
-                {pick(PAGE.cta_secondary_ar, PAGE.cta_secondary_en)}{" "}
+                {L("cta_secondary_ar")}{" "}
                 <ArrowLeft className="mr-2 h-4 w-4 rtl:rotate-0 ltr:rotate-180" />
               </Link>
             </Button>

@@ -17,6 +17,7 @@ export const Route = createFileRoute("/_authenticated/admin/portfolio")({
 const DEFAULT_CATEGORIES_ORDER = [
   "medical_websites",
   "social_media",
+  "reels",
   "medical_photography",
   "seo_results",
   "monthly_work",
@@ -24,6 +25,7 @@ const DEFAULT_CATEGORIES_ORDER = [
 const CATEGORY_LABELS: Record<string, string> = {
   medical_websites: "مواقع طبية",
   social_media: "سوشيال ميديا",
+  reels: "ريلز",
   medical_photography: "تصوير طبي",
   seo_results: "SEO ونتائج بحث",
   monthly_work: "أعمال شهرية",
