@@ -14,6 +14,9 @@ import {
   ShieldCheck,
   Home as HomeIcon,
   ExternalLink,
+  ArrowUp,
+  ArrowDown,
+  GripVertical,
 } from "lucide-react";
 import { requireWebsiteAdmin } from "@/lib/admin";
 import { supabase } from "@/integrations/supabase/client";
@@ -81,9 +84,64 @@ const emptyT = (): T => ({
   sort_order: 100,
 });
 
+// أقسام صفحة /reviews بالترتيب الافتراضي (نفس ترتيب الصفحة العامة)
+const REVIEWS_DEFAULT_ORDER = ["hero", "videos", "written", "cta", "leave"];
+const REVIEWS_SECTION_LABELS: Record<string, string> = {
+  hero: "الهيدر (العنوان والمقدمة والثقة)",
+  videos: "شهادات الفيديو",
+  written: "الآراء المكتوبة",
+  cta: "دعوة الإجراء",
+  leave: "نموذج (اترك رأيك)",
+};
+
+const TABS = [
+  { id: "live", label: "✨ الصفحة الحية" },
+  { id: "sections", label: "🔀 ترتيب الأقسام" },
+  { id: "submissions", label: "📥 الموافقة على الآراء المُرسَلة" },
+];
+
 function AdminReviews() {
   const qc = useQueryClient();
-  const [tab, setTab] = useState<"published" | "submissions">("published");
+  const [tab, setTab] = useState<"live" | "sections" | "submissions">("live");
+
+  // محتوى/ترتيب أقسام الصفحة من page_sections
+  const { data: pageContent } = useQuery({
+    queryKey: ["page-sections-admin", "reviews"],
+    queryFn: async () => {
+      const rows = (await db.from("page_sections").select("*").eq("page_slug", "reviews")).data ?? [];
+      const merged: Record<string, any> = {};
+      rows.forEach((r: any) => Object.assign(merged, r.content_json ?? {}));
+      return merged;
+    },
+  });
+  const [page, setPage] = useState<Record<string, any>>({});
+  useEffect(() => {
+    if (pageContent) setPage(pageContent);
+  }, [pageContent]);
+
+  async function savePage() {
+    const { error } = await db.from("page_sections").upsert(
+      {
+        page_slug: "reviews",
+        section_key: "intro",
+        content_json: page,
+        is_visible: true,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "page_slug,section_key" },
+    );
+    if (error) return toast.error(error.message);
+    qc.invalidateQueries({ queryKey: ["page-sections-admin", "reviews"] });
+    qc.invalidateQueries({ queryKey: ["page-sections-public", "reviews"] });
+    toast.success("تم حفظ التغييرات ✓");
+  }
+
+  const order: string[] = Array.isArray(page.sections_order)
+    ? page.sections_order
+    : REVIEWS_DEFAULT_ORDER;
+  const hidden: string[] = Array.isArray(page.sections_hidden) ? page.sections_hidden : [];
+  const setOrder = (o: string[]) => setPage((p) => ({ ...p, sections_order: o }));
+  const setHidden = (h: string[]) => setPage((p) => ({ ...p, sections_hidden: h }));
 
   return (
     <div className="mx-auto max-w-5xl">
@@ -94,30 +152,85 @@ function AdminReviews() {
         </p>
       </div>
 
-      <div className="mb-6 flex gap-2 border-b border-border">
-        <button
-          onClick={() => setTab("published")}
-          className={`-mb-px border-b-2 px-4 py-2 text-sm font-medium transition-colors ${
-            tab === "published"
-              ? "border-brand text-brand"
-              : "border-transparent text-muted-foreground hover:text-foreground"
-          }`}
-        >
-          الشهادات المنشورة
-        </button>
-        <button
-          onClick={() => setTab("submissions")}
-          className={`-mb-px border-b-2 px-4 py-2 text-sm font-medium transition-colors ${
-            tab === "submissions"
-              ? "border-brand text-brand"
-              : "border-transparent text-muted-foreground hover:text-foreground"
-          }`}
-        >
-          الآراء المُرسَلة
-        </button>
+      <div className="mb-6 flex flex-wrap gap-2 border-b border-border">
+        {TABS.map((t) => (
+          <button
+            key={t.id}
+            onClick={() => setTab(t.id as any)}
+            className={`-mb-px border-b-2 px-4 py-2 text-sm font-medium transition-colors ${
+              tab === t.id
+                ? "border-brand text-brand"
+                : "border-transparent text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            {t.label}
+          </button>
+        ))}
       </div>
 
-      {tab === "published" ? <PublishedTab qc={qc} /> : <SubmissionsTab qc={qc} />}
+      {tab === "live" && <PublishedTab qc={qc} />}
+      {tab === "sections" && (
+        <div>
+          <section className="rounded-2xl border border-border bg-card p-6 shadow-card">
+            <p className="mb-4 text-sm text-muted-foreground">
+              رتّب أقسام صفحة آراء العملاء (أعلى/أسفل) أو أخفِ أي قسم، ثم اضغط "حفظ الترتيب".
+            </p>
+            <ReviewsSectionsManager order={order} hidden={hidden} onOrder={setOrder} onHidden={setHidden} />
+          </section>
+          <div className="mt-4 flex justify-end">
+            <Button onClick={savePage} className="gap-2 gradient-hero text-brand-foreground">
+              <Save className="h-4 w-4" /> حفظ الترتيب
+            </Button>
+          </div>
+        </div>
+      )}
+      {tab === "submissions" && <SubmissionsTab qc={qc} />}
+    </div>
+  );
+}
+
+function ReviewsSectionsManager({
+  order,
+  hidden,
+  onOrder,
+  onHidden,
+}: {
+  order: string[];
+  hidden: string[];
+  onOrder: (o: string[]) => void;
+  onHidden: (h: string[]) => void;
+}) {
+  function move(i: number, dir: -1 | 1) {
+    const n = [...order];
+    const j = i + dir;
+    if (j < 0 || j >= n.length) return;
+    [n[i], n[j]] = [n[j], n[i]];
+    onOrder(n);
+  }
+  function toggle(id: string) {
+    onHidden(hidden.includes(id) ? hidden.filter((x) => x !== id) : [...hidden, id]);
+  }
+  return (
+    <div className="space-y-2">
+      {order.map((id, i) => (
+        <div key={id} className="flex items-center gap-3 rounded-xl border border-border bg-background p-3">
+          <GripVertical className="h-4 w-4 text-muted-foreground" />
+          <span className="flex-1 text-sm font-medium">{REVIEWS_SECTION_LABELS[id] ?? id}</span>
+          <Button size="icon" variant="ghost" onClick={() => move(i, -1)} disabled={i === 0}>
+            <ArrowUp className="h-4 w-4" />
+          </Button>
+          <Button size="icon" variant="ghost" onClick={() => move(i, 1)} disabled={i === order.length - 1}>
+            <ArrowDown className="h-4 w-4" />
+          </Button>
+          <Button size="icon" variant="ghost" onClick={() => toggle(id)}>
+            {hidden.includes(id) ? (
+              <EyeOff className="h-4 w-4 text-muted-foreground" />
+            ) : (
+              <Eye className="h-4 w-4 text-brand" />
+            )}
+          </Button>
+        </div>
+      ))}
     </div>
   );
 }
@@ -141,6 +254,8 @@ function PublishedTab({ qc }: { qc: ReturnType<typeof useQueryClient> }) {
         thumbnail_url: v.thumbnail_url,
         rating: v.rating,
         is_verified: v.is_verified,
+        is_featured: v.is_featured,
+        show_on_home: v.show_on_home,
         is_published: v.is_active,
         sort_order: v.display_order,
       }));
@@ -159,6 +274,8 @@ function PublishedTab({ qc }: { qc: ReturnType<typeof useQueryClient> }) {
         profile_url: w.original_post_url,
         rating: w.rating,
         is_verified: w.is_verified,
+        is_featured: w.is_featured,
+        show_on_home: w.show_on_home,
         is_published: w.is_active,
         sort_order: w.display_order,
       }));
@@ -209,6 +326,8 @@ function PublishedTab({ qc }: { qc: ReturnType<typeof useQueryClient> }) {
           thumbnail_url: it.thumbnail_url || null,
           rating: it.rating ?? 5,
           is_verified: !!it.is_verified,
+          is_featured: !!it.is_featured,
+          show_on_home: !!it.show_on_home,
           is_active: it.is_published !== false,
           display_order: it.sort_order ?? 100,
         }
@@ -222,6 +341,8 @@ function PublishedTab({ qc }: { qc: ReturnType<typeof useQueryClient> }) {
           button_text: "عرض الرأي الكامل",
           rating: it.rating ?? 5,
           is_verified: !!it.is_verified,
+          is_featured: !!it.is_featured,
+          show_on_home: !!it.show_on_home,
           is_active: it.is_published !== false,
           display_order: it.sort_order ?? 100,
         };
@@ -403,30 +524,53 @@ function SubmissionsTab({ qc }: { qc: ReturnType<typeof useQueryClient> }) {
   const { data: subs = [] } = useQuery({
     queryKey: ["admin-pending-reviews"],
     queryFn: async () => {
-      const rows =
+      // الآراء المعلّقة من الجدولين: فيديو + مكتوب/صورة
+      const writ =
         (await db
           .from("written_testimonials")
           .select("*")
           .eq("is_active", false)
           .order("created_at", { ascending: false })).data ?? [];
-      // خريطة إلى الشكل الذي يتوقعه العرض
-      return rows.map((w: any) => ({
+      const vids =
+        (await db
+          .from("video_testimonials")
+          .select("*")
+          .eq("is_active", false)
+          .order("created_at", { ascending: false })).data ?? [];
+      const mappedW = writ.map((w: any) => ({
         id: w.id,
+        _table: "written_testimonials",
         full_name: w.client_name,
         job_title: w.client_title,
         review_text: w.review_text,
         review_type: w.review_image_url ? "image" : "text",
         media_url: w.review_image_url,
         profile_url: w.original_post_url,
+        created_at: w.created_at,
         status: "pending",
       }));
+      const mappedV = vids.map((v: any) => ({
+        id: v.id,
+        _table: "video_testimonials",
+        full_name: v.client_name,
+        job_title: v.client_title,
+        review_text: null,
+        review_type: "video",
+        media_url: v.video_url,
+        profile_url: null,
+        created_at: v.created_at,
+        status: "pending",
+      }));
+      return [...mappedV, ...mappedW].sort((a, b) =>
+        String(b.created_at ?? "").localeCompare(String(a.created_at ?? "")),
+      );
     },
   });
 
-  async function setStatus(id: string, status: string) {
-    // رفض = حذف الرأي المعلّق
+  async function setStatus(s: any, status: string) {
+    // رفض = حذف الرأي المعلّق من جدوله الصحيح
     if (status === "rejected") {
-      const { error } = await db.from("written_testimonials").delete().eq("id", id);
+      const { error } = await db.from(s._table).delete().eq("id", s.id);
       if (error) return toast.error("تعذّر الرفض");
       toast.success("تم الرفض");
     }
@@ -436,7 +580,7 @@ function SubmissionsTab({ qc }: { qc: ReturnType<typeof useQueryClient> }) {
   async function approveToPublished(s: any) {
     // اعتماد = تفعيل الرأي المعلّق (is_active=true) ليظهر للعامة
     const { error } = await db
-      .from("written_testimonials")
+      .from(s._table)
       .update({ is_active: true, is_verified: true })
       .eq("id", s.id);
     if (error) return toast.error("تعذّر النشر: " + error.message);
@@ -444,6 +588,7 @@ function SubmissionsTab({ qc }: { qc: ReturnType<typeof useQueryClient> }) {
     qc.invalidateQueries({ queryKey: ["admin-pending-reviews"] });
     qc.invalidateQueries({ queryKey: ["admin-testimonials-v2"] });
     qc.invalidateQueries({ queryKey: ["public-written-testimonials-v2"] });
+    qc.invalidateQueries({ queryKey: ["public-video-testimonials-v2"] });
   }
 
   if (!subs.length)
@@ -484,7 +629,7 @@ function SubmissionsTab({ qc }: { qc: ReturnType<typeof useQueryClient> }) {
             <Button size="sm" className="gap-1" onClick={() => approveToPublished(s)}>
               <Check className="h-4 w-4" /> قبول ونشر
             </Button>
-            <Button size="sm" variant="outline" className="gap-1" onClick={() => setStatus(s.id, "rejected")}>
+            <Button size="sm" variant="outline" className="gap-1" onClick={() => setStatus(s, "rejected")}>
               <X className="h-4 w-4" /> رفض
             </Button>
             <Button
@@ -493,8 +638,8 @@ function SubmissionsTab({ qc }: { qc: ReturnType<typeof useQueryClient> }) {
               className="gap-1 text-destructive"
               onClick={async () => {
                 if (!confirm("حذف هذا الطلب نهائيًا؟")) return;
-                await db.from("written_testimonials").delete().eq("id", s.id);
-                qc.invalidateQueries({ queryKey: ["admin-testimonial-submissions"] });
+                await db.from(s._table).delete().eq("id", s.id);
+                qc.invalidateQueries({ queryKey: ["admin-pending-reviews"] });
               }}
             >
               <Trash2 className="h-4 w-4" /> حذف

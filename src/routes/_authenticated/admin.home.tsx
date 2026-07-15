@@ -38,6 +38,8 @@ const SECTION_LABELS: Record<string, string> = {
   stats: "الإحصائيات",
   services: "الخدمات المختصرة",
   why: "لماذا MDink + المنظومة",
+  testimonials: "آراء العملاء (المختارة للرئيسية)",
+  system: "system",
   cta: "دعوة الإجراء النهائية",
 };
 
@@ -603,7 +605,7 @@ function AdminHome() {
             order={
               Array.isArray(c.sections_order)
                 ? c.sections_order
-                : ["hero", "stats", "services", "why", "cta"]
+                : ["hero", "stats", "services", "why", "system", "testimonials", "cta"]
             }
             hidden={Array.isArray(c.sections_hidden) ? c.sections_hidden : []}
             onOrder={(o) => set("sections_order", o)}

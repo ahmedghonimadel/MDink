@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState, useRef, useMemo, useEffect } from "react";
@@ -238,10 +239,27 @@ function ReviewsPage() {
 
   const [lightbox, setLightbox] = useState<T | null>(null);
 
-  return (
-    <MarketingLayout>
-      {/* Hero */}
-      <section className="border-b border-border gradient-soft">
+  // ترتيب/إخفاء أقسام الصفحة من لوحة التحكم (page_sections slug=reviews)
+  const { data: cmsPage } = useQuery({
+    queryKey: ["page-sections-public", "reviews"],
+    queryFn: async () => {
+      const rows = (await db.from("page_sections").select("*").eq("page_slug", "reviews")).data ?? [];
+      const merged: Record<string, any> = {};
+      rows.forEach((r: any) => Object.assign(merged, r.content_json ?? {}));
+      return merged;
+    },
+  });
+  const secDefault = ["hero", "videos", "written", "cta", "leave"];
+  const secOrder: string[] = Array.isArray((cmsPage as any)?.sections_order)
+    ? (cmsPage as any).sections_order
+    : secDefault;
+  const secHidden: string[] = Array.isArray((cmsPage as any)?.sections_hidden)
+    ? (cmsPage as any).sections_hidden
+    : [];
+
+  const sections: Record<string, () => ReactNode> = {
+    hero: () => (
+      <section key="hero" className="border-b border-border gradient-soft">
         <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
           <Reveal>
             <div className="inline-flex items-center gap-2 rounded-full border border-accent/40 bg-accent/10 px-3 py-1 text-xs font-semibold text-accent-foreground">
@@ -270,10 +288,11 @@ function ReviewsPage() {
           </div>
         </div>
       </section>
-
-      {/* Video testimonials carousel */}
-      {videos.length > 0 && (
-        <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
+    ),
+    // شهادات الفيديو
+    videos: () =>
+      videos.length > 0 ? (
+        <section key="videos" className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
           <Reveal>
             <h2 className="text-center text-2xl font-extrabold sm:text-3xl">
               {pick(P.videoTitle_ar, P.videoTitle_en)}
@@ -281,11 +300,11 @@ function ReviewsPage() {
           </Reveal>
           <VideoCarousel videos={videos} pick={pick} locale={locale} />
         </section>
-      )}
-
-      {/* Written testimonials */}
-      {written.length > 0 && (
-        <section className="border-y border-border bg-card">
+      ) : null,
+    // الآراء المكتوبة
+    written: () =>
+      written.length > 0 ? (
+        <section key="written" className="border-y border-border bg-card">
           <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
             <Reveal>
               <h2 className="text-2xl font-extrabold sm:text-3xl">
@@ -363,10 +382,10 @@ function ReviewsPage() {
             </div>
           </div>
         </section>
-      )}
-
-      {/* CTA */}
-      <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
+      ) : null,
+    // دعوة الإجراء
+    cta: () => (
+      <section key="cta" className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
         <Reveal className="overflow-hidden rounded-3xl gradient-hero p-10 text-center text-brand-foreground shadow-brand sm:p-16">
           <h2 className="text-2xl font-bold sm:text-4xl">{pick(P.ctaTitle_ar, P.ctaTitle_en)}</h2>
           <p className="mx-auto mt-3 max-w-2xl text-sm opacity-90 sm:text-base">
@@ -390,9 +409,10 @@ function ReviewsPage() {
           </div>
         </Reveal>
       </section>
-
-      {/* Leave a review */}
-      <section className="border-t border-border bg-card">
+    ),
+    // نموذج (اترك رأيك)
+    leave: () => (
+      <section key="leave" className="border-t border-border bg-card">
         <div className="mx-auto max-w-3xl px-4 py-16 sm:px-6">
           <Reveal className="text-center">
             <h2 className="text-2xl font-extrabold sm:text-3xl">{pick(P.leaveTitle_ar, P.leaveTitle_en)}</h2>
@@ -405,6 +425,12 @@ function ReviewsPage() {
           </Reveal>
         </div>
       </section>
+    ),
+  };
+
+  return (
+    <MarketingLayout>
+      {secOrder.filter((id) => !secHidden.includes(id)).map((id) => sections[id]?.())}
 
       {/* Lightbox for written reviews */}
       {lightbox && (
@@ -661,18 +687,36 @@ function ReviewForm({
       if (file && (form.review_type === "image" || form.review_type === "video")) {
         media_url = await uploadMedia(file, "review-submissions");
       }
-      const { error: insErr } = await db.from("written_testimonials").insert({
-        client_name: form.full_name.trim(),
-        client_title: form.job_title.trim() || null,
-        client_specialty: form.job_title.trim() || null,
-        review_text: form.review_text.trim() || null,
-        review_image_url: form.review_type === "image" ? media_url : null,
-        original_post_url: form.profile_url.trim() || null,
-        rating: 5,
-        is_verified: false,
-        is_active: false, // pending — لا يظهر حتى يعتمده الأدمن
-        display_order: 999,
-      });
+      // فيديو ← video_testimonials ، نص/صورة ← written_testimonials — الاثنان pending
+      // (is_active=false) فلا يظهران للعامة حتى يوافق الأدمن.
+      const insErr =
+        form.review_type === "video"
+          ? (
+              await db.from("video_testimonials").insert({
+                client_name: form.full_name.trim(),
+                client_title: form.job_title.trim() || null,
+                client_specialty: form.job_title.trim() || null,
+                video_url: media_url,
+                rating: 5,
+                is_verified: false,
+                is_active: false, // pending — لا يظهر حتى يعتمده الأدمن
+                display_order: 999,
+              })
+            ).error
+          : (
+              await db.from("written_testimonials").insert({
+                client_name: form.full_name.trim(),
+                client_title: form.job_title.trim() || null,
+                client_specialty: form.job_title.trim() || null,
+                review_text: form.review_text.trim() || null,
+                review_image_url: form.review_type === "image" ? media_url : null,
+                original_post_url: form.profile_url.trim() || null,
+                rating: 5,
+                is_verified: false,
+                is_active: false, // pending — لا يظهر حتى يعتمده الأدمن
+                display_order: 999,
+              })
+            ).error;
       if (insErr) throw insErr;
       setDone(true);
     } catch {

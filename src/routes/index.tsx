@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { MarketingLayout } from "@/components/MarketingLayout";
 import { Button } from "@/components/ui/button";
-import { Stethoscope, ArrowLeft, CheckCircle2, Sparkles, Play } from "lucide-react";
+import { Stethoscope, ArrowLeft, CheckCircle2, Sparkles, Play, Star } from "lucide-react";
 import { useLocale } from "@/lib/i18n";
 import { supabase } from "@/integrations/supabase/client";
 import { getPageSeo } from "@/lib/content";
@@ -183,7 +183,13 @@ const FALLBACK: Record<string, any> = {
   cta_secondary_en: "Learn more",
   hero_bg_image: "",
   preview_card_image: "",
-  sections_order: ["hero", "stats", "services", "why", "system", "cta"],
+  testimonials_title_ar: "آراء عملائنا",
+  testimonials_title_en: "Client Reviews",
+  testimonials_intro_ar: "تجارب حقيقية من أطباء وعيادات عملوا مع MDink Solutions.",
+  testimonials_intro_en: "Real experiences from doctors and clinics who worked with MDink Solutions.",
+  testimonials_cta_ar: "شاهد كل الآراء",
+  testimonials_cta_en: "See all reviews",
+  sections_order: ["hero", "stats", "services", "why", "system", "testimonials", "cta"],
   sections_hidden: [],
 };
 
@@ -237,14 +243,65 @@ function HomePage() {
     },
   });
 
+  // آراء العملاء المختارة للظهور في الرئيسية (show_on_home + منشورة فقط)
+  const { data: homeReviews = [] } = useQuery({
+    queryKey: ["home-testimonials"],
+    queryFn: async () => {
+      const vids =
+        (await db
+          .from("video_testimonials")
+          .select("*")
+          .eq("is_active", true)
+          .eq("show_on_home", true)
+          .order("display_order")).data ?? [];
+      const writ =
+        (await db
+          .from("written_testimonials")
+          .select("*")
+          .eq("is_active", true)
+          .eq("show_on_home", true)
+          .order("display_order")).data ?? [];
+      const mapped = [
+        ...vids.map((v: any) => ({
+          id: v.id,
+          kind: "video" as const,
+          name: v.client_name,
+          role: v.client_specialty || v.client_title || "",
+          text: v.short_text || "",
+          rating: v.rating ?? 5,
+          media_url: v.video_url,
+          thumbnail_url: v.thumbnail_url,
+          order: v.display_order ?? 0,
+        })),
+        ...writ.map((w: any) => ({
+          id: w.id,
+          kind: "written" as const,
+          name: w.client_name,
+          role: w.client_specialty || w.client_title || "",
+          text: w.review_text || "",
+          rating: w.rating ?? 5,
+          media_url: w.review_image_url,
+          thumbnail_url: w.review_image_url,
+          order: w.display_order ?? 0,
+        })),
+      ];
+      return mapped.sort((a, b) => a.order - b.order);
+    },
+  });
+
   // دمج: DB فوق الـ fallback
   const c = { ...FALLBACK, ...(cmsHome?.content ?? {}) };
   const L = (base: string) => c[`${base}_${locale}`] ?? c[`${base}_ar`] ?? "";
   const arr = (key: string) => (Array.isArray(c[key]) ? c[key] : (FALLBACK[key] ?? []));
 
-  const order: string[] = Array.isArray(c.sections_order)
+  const savedOrder: string[] = Array.isArray(c.sections_order)
     ? c.sections_order
     : FALLBACK.sections_order;
+  // ألحق أي قسم معروف غير موجود في الترتيب المحفوظ (مثل الأقسام المُضافة حديثًا)
+  const order: string[] = [
+    ...savedOrder,
+    ...FALLBACK.sections_order.filter((id: string) => !savedOrder.includes(id)),
+  ];
   const hidden: string[] = Array.isArray(c.sections_hidden) ? c.sections_hidden : [];
   const visible = (id: string) => !hidden.includes(id);
 
@@ -530,6 +587,67 @@ function HomePage() {
                 ))}
               </ul>
             </Reveal>
+          </div>
+        </section>
+      );
+    },
+
+    testimonials: () => {
+      if (!homeReviews.length) return null;
+      return (
+        <section key="testimonials" className="border-y border-border bg-card">
+          <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6">
+            <Reveal as="div" className="mb-10 text-center">
+              <h2 className="text-3xl font-bold sm:text-4xl">{L("testimonials_title")}</h2>
+              <p className="mt-3 text-muted-foreground">{L("testimonials_intro")}</p>
+            </Reveal>
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {homeReviews.map((r: any, i: number) => (
+                <Reveal
+                  key={r.id}
+                  delay={(i % 3) * 90}
+                  as="article"
+                  className="flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-background shadow-card transition-all hover:-translate-y-1 hover:border-brand/40 hover:shadow-brand"
+                >
+                  {r.kind === "video" ? (
+                    <VideoPlayer url={r.media_url || ""} thumbnail={r.thumbnail_url || undefined} title={r.name} />
+                  ) : r.thumbnail_url ? (
+                    <img
+                      src={r.thumbnail_url}
+                      alt={r.name}
+                      loading="lazy"
+                      className="h-48 w-full object-cover object-top"
+                    />
+                  ) : null}
+                  <div className="flex flex-1 flex-col p-6">
+                    <div className="flex items-center gap-1">
+                      {Array.from({ length: 5 }).map((_, s) => (
+                        <Star
+                          key={s}
+                          className={`h-4 w-4 ${
+                            s < (r.rating ?? 5) ? "fill-accent text-accent" : "text-muted-foreground/30"
+                          }`}
+                        />
+                      ))}
+                    </div>
+                    {r.text ? (
+                      <p className="mt-3 flex-1 text-sm leading-relaxed text-muted-foreground">{r.text}</p>
+                    ) : (
+                      <div className="flex-1" />
+                    )}
+                    <div className="mt-4">
+                      <div className="font-semibold">{r.name}</div>
+                      {r.role ? <div className="text-xs text-muted-foreground">{r.role}</div> : null}
+                    </div>
+                  </div>
+                </Reveal>
+              ))}
+            </div>
+            <div className="mt-10 text-center">
+              <Button asChild variant="outline" className="transition-transform hover:-translate-y-0.5">
+                <Link to="/reviews">{L("testimonials_cta")}</Link>
+              </Button>
+            </div>
           </div>
         </section>
       );
