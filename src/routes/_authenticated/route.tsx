@@ -9,7 +9,6 @@ import {
   FileSpreadsheet,
   Home,
   LogOut,
-  Megaphone,
   Menu,
   MessageSquare,
   Newspaper,
@@ -148,9 +147,6 @@ function AuthenticatedLayout() {
               </SideLink>
               <SideLink to="/admin/team-tasks" icon={ClipboardList}>
                 مهام الفريق
-              </SideLink>
-              <SideLink to="/admin/operations" icon={Megaphone}>
-                المشاريع
               </SideLink>
               <SideLink to="/admin/exports" icon={FileSpreadsheet}>
                 تصدير Excel
