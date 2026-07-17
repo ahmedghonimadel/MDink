@@ -61,11 +61,9 @@ BEGIN
     SELECT id FROM auth.users
       WHERE lower(email) IN ('shfahmy2010@gmail.com', 'tasneemfahmy21@gmail.com')
   LOOP
-    INSERT INTO public.notifications
-      (recipient_user_id, title_ar, message_ar, notification_type, related_entity_type, related_entity_id)
-    VALUES
-      (admin_id, src_label || ' جديد من الموقع', COALESCE(NEW.full_name, 'طلب جديد'),
-       'lead', 'link', '/admin/leads');
+    -- أعمدة الجدول الحي: recipient_user_id/title/message/type (وجهة النقر تُشتقّ من type='lead')
+    INSERT INTO public.notifications (recipient_user_id, title, message, type)
+    VALUES (admin_id, src_label || ' جديد من الموقع', COALESCE(NEW.full_name, 'طلب جديد'), 'lead');
   END LOOP;
 
   RETURN NEW;

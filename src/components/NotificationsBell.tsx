@@ -4,21 +4,24 @@ import { Link } from "@tanstack/react-router";
 import { Bell, Check, CheckCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
-// أعمدة الجدول الفعلية في قاعدة البيانات (recipient_user_id/title_ar/message_ar/…)
+// أعمدة الجدول الفعلية في قاعدة البيانات الحية: recipient_user_id/title/message/type/is_read
 type Notification = {
   id: string;
-  title_ar: string | null;
-  message_ar: string | null;
-  notification_type: string | null;
-  related_entity_type: string | null;
-  related_entity_id: string | null;
+  title: string | null;
+  message: string | null;
+  type: string | null;
   is_read: boolean;
   created_at: string;
 };
 
-// رابط النقر يُخزَّن في related_entity_id عندما related_entity_type = "link"
+// لا يوجد عمود «link» في الجدول — نشتقّ وجهة النقر من نوع الإشعار
+const TYPE_LINKS: Record<string, string> = {
+  task: "/dashboard/tasks",
+  lead: "/admin/leads",
+  payment: "/admin/payments",
+};
 function notifLink(n: Notification): string | null {
-  return n.related_entity_type === "link" ? n.related_entity_id : null;
+  return (n.type && TYPE_LINKS[n.type]) || null;
 }
 
 /**
@@ -53,17 +56,14 @@ export function NotificationsBell() {
   const unreadCount = notifications.filter((n) => !n.is_read).length;
 
   async function markRead(id: string) {
-    await db
-      .from("notifications")
-      .update({ is_read: true, read_at: new Date().toISOString() })
-      .eq("id", id);
+    await db.from("notifications").update({ is_read: true }).eq("id", id);
     qc.invalidateQueries({ queryKey: ["my-notifications"] });
   }
 
   async function markAllRead() {
     await db
       .from("notifications")
-      .update({ is_read: true, read_at: new Date().toISOString() })
+      .update({ is_read: true })
       .eq("recipient_user_id", userId)
       .eq("is_read", false);
     qc.invalidateQueries({ queryKey: ["my-notifications"] });
@@ -119,11 +119,9 @@ export function NotificationsBell() {
                           }`}
                         />
                         <div className="min-w-0 flex-1">
-                          <div className="text-sm font-medium">{n.title_ar}</div>
-                          {n.message_ar ? (
-                            <div className="mt-0.5 text-xs text-muted-foreground">
-                              {n.message_ar}
-                            </div>
+                          <div className="text-sm font-medium">{n.title}</div>
+                          {n.message ? (
+                            <div className="mt-0.5 text-xs text-muted-foreground">{n.message}</div>
                           ) : null}
                           <div className="mt-1 text-[11px] text-muted-foreground">
                             {new Date(n.created_at).toLocaleString("ar-EG")}
@@ -180,16 +178,13 @@ export async function createNotification(params: {
   link?: string;
   type?: string;
 }) {
-  const { data: auth } = await supabase.auth.getUser();
+  // الجدول الحي يحتوي: recipient_user_id/title/message/type/is_read فقط.
+  // لا يوجد عمود link — وجهة النقر تُشتقّ من type في الجرس (params.link يُهمَل).
   const { error } = await (supabase as any).from("notifications").insert({
     recipient_user_id: params.userId,
-    sender_user_id: auth.user?.id ?? null,
-    title_ar: params.title,
-    message_ar: params.body ?? null,
-    notification_type: params.type ?? "info",
-    // نُخزّن رابط النقر في related_entity_id ليقرأه جرس الإشعارات
-    related_entity_type: params.link ? "link" : null,
-    related_entity_id: params.link ?? null,
+    title: params.title,
+    message: params.body ?? null,
+    type: params.type ?? "info",
   });
   if (error) console.error("[notifications] insert failed", error.message);
   return { error };
