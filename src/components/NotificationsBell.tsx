@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { Bell, Check, CheckCheck } from "lucide-react";
@@ -32,6 +32,25 @@ export function NotificationsBell() {
   const db = supabase as any;
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
+  const wrapRef = useRef<HTMLDivElement>(null);
+
+  // أغلق القائمة عند الضغط في أي مكان خارجها أو بزر Escape.
+  // مستمع على مستوى المستند أضمن من overlay محبوس داخل سياق تكديس الهيدر.
+  useEffect(() => {
+    if (!open) return;
+    function onPointerDown(e: PointerEvent) {
+      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) setOpen(false);
+    }
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") setOpen(false);
+    }
+    document.addEventListener("pointerdown", onPointerDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
 
   const { data: userId } = useQuery({
     queryKey: ["auth-user-id"],
@@ -70,7 +89,7 @@ export function NotificationsBell() {
   }
 
   return (
-    <div className="relative z-[60]">
+    <div className="relative z-[60]" ref={wrapRef}>
       <button
         onClick={() => setOpen((v) => !v)}
         className="relative flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
@@ -86,8 +105,8 @@ export function NotificationsBell() {
 
       {open ? (
         <>
-          <div className="fixed inset-0 z-[90]" onClick={() => setOpen(false)} aria-hidden />
-          {/* تُفتح ناحية الشمال (start في RTL = يمين الزر ثم تمتد يسارًا) حتى لا تختفي خلف السايدبار على اليمين */}
+          {/* تُفتح ناحية الشمال (start في RTL = يمين الزر ثم تمتد يسارًا) حتى لا تختفي خلف السايدبار على اليمين.
+              الإغلاق عند الضغط بالخارج يتم عبر مستمع المستند أعلاه (أضمن من overlay). */}
           <div className="absolute start-0 z-[100] mt-2 flex max-h-[70vh] w-80 max-w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-2xl">
             <div className="flex shrink-0 items-center justify-between border-b border-border px-4 py-3">
               <span className="font-semibold">الإشعارات</span>
