@@ -47,18 +47,30 @@ Deno.serve(async (req) => {
     auth: { persistSession: false, autoRefreshToken: false },
   });
 
-  // المتصل لازم يكون أدمن (super/admin) أو أحد الإيميلين المحميّين
+  // المتصل لازم يكون أدمن. نقبله عبر أي مصدر من الثلاثة (النظام فيه أكثر من جدول أدوار):
+  //  (1) أحد الإيميلين المحميّين، أو (2) user_roles=super_admin/admin، أو (3) admin_users.role=admin.
   const { data: callerData, error: callerError } = await callerClient.auth.getUser();
   if (callerError || !callerData.user) return json({ error: "Unauthorized" }, 401);
-  const { data: callerRoles, error: rolesError } = await callerClient
+
+  const callerEmail = (callerData.user.email ?? "").toLowerCase();
+  const isProtectedAdmin = protectedAdmins.has(callerEmail);
+
+  // user_roles (قد يفشل بسبب RLS — نتجاهله بدل الفشل)
+  const { data: callerRoles } = await callerClient
     .from("user_roles")
     .select("role")
     .eq("user_id", callerData.user.id);
-  if (rolesError) return json({ error: rolesError.message }, 500);
-  const callerEmail = (callerData.user.email ?? "").toLowerCase();
-  const isProtectedAdmin = protectedAdmins.has(callerEmail);
   const hasAdminRole = (callerRoles ?? []).some((r) => ["super_admin", "admin"].includes(r.role));
-  if (!isProtectedAdmin && !hasAdminRole)
+
+  // admin_users (مصدر وصول التطبيق) — نقرأه بمفتاح الخدمة لتجاوز RLS
+  const { data: callerAdmin } = await adminClient
+    .from("admin_users")
+    .select("role,is_active")
+    .eq("user_id", callerData.user.id)
+    .maybeSingle();
+  const isAppAdmin = !!callerAdmin?.is_active && callerAdmin.role === "admin";
+
+  if (!isProtectedAdmin && !hasAdminRole && !isAppAdmin)
     return json({ error: "Only admins can create users" }, 403);
 
   const body = await req.json().catch(() => null);
