@@ -87,7 +87,8 @@ export function NotificationsBell() {
       {open ? (
         <>
           <div className="fixed inset-0 z-[90]" onClick={() => setOpen(false)} aria-hidden />
-          <div className="absolute end-0 z-[100] mt-2 flex max-h-[70vh] w-80 max-w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-2xl">
+          {/* تُفتح ناحية الشمال (start في RTL = يمين الزر ثم تمتد يسارًا) حتى لا تختفي خلف السايدبار على اليمين */}
+          <div className="absolute start-0 z-[100] mt-2 flex max-h-[70vh] w-80 max-w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-2xl">
             <div className="flex shrink-0 items-center justify-between border-b border-border px-4 py-3">
               <span className="font-semibold">الإشعارات</span>
               {unreadCount > 0 ? (
