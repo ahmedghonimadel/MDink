@@ -20,6 +20,7 @@ import {
 import { MarketingLayout } from "@/components/MarketingLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { getPageSeo } from "@/lib/content";
+import { canonical } from "@/lib/site-config";
 import { useLocale } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { Reveal } from "@/components/Reveal";
@@ -42,11 +43,11 @@ export const Route = createFileRoute("/about")({
         { name: "description", content: desc },
         { property: "og:title", content: title },
         { property: "og:description", content: desc },
+        { property: "og:type", content: "website" },
+        { property: "og:url", content: canonical("/about") },
         { name: "robots", content: seo?.robots || "index,follow" },
       ],
-      links: seo?.canonical_url
-        ? [{ rel: "canonical", href: seo.canonical_url }]
-        : [{ rel: "canonical", href: "/about" }],
+      links: [{ rel: "canonical", href: seo?.canonical_url || canonical("/about") }],
     };
   },
   component: AboutPage,

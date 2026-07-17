@@ -12,7 +12,6 @@ import {
   Menu,
   MessageSquare,
   Newspaper,
-  Search,
   Shield,
   SlidersHorizontal,
   SquareActivity,
@@ -128,9 +127,8 @@ function AuthenticatedLayout() {
               <SideLink to="/admin/contact-settings" icon={Contact}>
                 التواصل والسوشيال
               </SideLink>
-              <SideLink to="/admin/seo" icon={Search}>
-                إعدادات SEO
-              </SideLink>
+              {/* إعدادات SEO أصبحت تلقائية بالكامل من الكود (عناوين/أوصاف/سكيمة/
+                  canonical/sitemap) — لا حاجة لصفحة إعداد يدوية. */}
             </>
           )}
           {(session?.isOperationsAdmin || session?.isSuperAdmin) && (

@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { getPageSeo } from "@/lib/content";
+import { canonical } from "@/lib/site-config";
 import { useLocale } from "@/lib/i18n";
 import { openExternal } from "@/lib/external-links";
 import { Button } from "@/components/ui/button";
@@ -40,7 +41,7 @@ export const Route = createFileRoute("/portfolio")({
         { property: "og:description", content: desc },
         { name: "robots", content: seo?.robots || "index,follow" },
       ],
-      links: seo?.canonical_url ? [{ rel: "canonical", href: seo.canonical_url }] : [],
+      links: [{ rel: "canonical", href: seo?.canonical_url || canonical("/portfolio") }],
     };
   },
   component: PortfolioPage,

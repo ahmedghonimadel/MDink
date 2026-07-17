@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { getPageSeo } from "@/lib/content";
+import { canonical } from "@/lib/site-config";
 import { useSiteConfig, whatsappUrlFrom } from "@/lib/use-site-config";
 import { useLocale } from "@/lib/i18n";
 import { localized, pickIcon } from "@/lib/cms";
@@ -46,13 +47,11 @@ export const Route = createFileRoute("/contact")({
         { name: "description", content: desc },
         { property: "og:title", content: title },
         { property: "og:description", content: desc },
-        { property: "og:url", content: "/contact" },
+        { property: "og:url", content: canonical("/contact") },
         { property: "og:type", content: "website" },
         { name: "robots", content: seo?.robots || "index,follow" },
       ],
-      links: seo?.canonical_url
-        ? [{ rel: "canonical", href: seo.canonical_url }]
-        : [{ rel: "canonical", href: "/contact" }],
+      links: [{ rel: "canonical", href: seo?.canonical_url || canonical("/contact") }],
     };
   },
   component: ContactPage,

@@ -4,6 +4,7 @@ import { useState, useMemo, useEffect, useRef } from "react";
 import { CalendarDays, ArrowLeft, Clock, Search, User, Newspaper } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { getPageSeo } from "@/lib/content";
+import { SITE_ORIGIN } from "@/lib/site-config";
 import { MarketingLayout } from "@/components/MarketingLayout";
 import { useLocale } from "@/lib/i18n";
 import { localized } from "@/lib/cms";
@@ -17,21 +18,28 @@ export const Route = createFileRoute("/blog")({
   },
   head: ({ loaderData }) => {
     const seo = loaderData?.seo;
-    const title = seo?.meta_title_ar || "MDink Solutions — المدونة الطبية";
+    const ORIGIN = SITE_ORIGIN;
+    const title =
+      seo?.meta_title_ar || "المدونة الطبية — تسويق طبي، SEO طبي، مواقع وعيادات | MDink Solutions";
     const desc =
       seo?.meta_description_ar ||
-      "مقالات ورؤى عملية في التسويق الطبي، المواقع، السوشيال ميديا، وإدارة العيادات.";
+      "دليل الطبيب للتسويق الطبي: كيف تظهر على جوجل باحترافية، تبني موقعًا طبيًا يجذب المرضى، وتدير سوشيال ميديا العيادة. مقالات عملية في SEO الطبي، المواقع، والمحتوى الطبي من MDink Solutions.";
     return {
       meta: [
         { title },
         { name: "description", content: desc },
+        {
+          name: "keywords",
+          content:
+            "تسويق طبي, تسويق للأطباء, SEO طبي, ظهور الطبيب في جوجل, مواقع طبية, تصميم موقع طبي, إدارة عيادات, محتوى طبي, سوشيال ميديا طبية",
+        },
         { property: "og:title", content: title },
         { property: "og:description", content: desc },
+        { property: "og:type", content: "website" },
+        { property: "og:url", content: `${ORIGIN}/blog` },
         { name: "robots", content: seo?.robots || "index,follow" },
       ],
-      links: seo?.canonical_url
-        ? [{ rel: "canonical", href: seo.canonical_url }]
-        : [{ rel: "canonical", href: "/blog" }],
+      links: [{ rel: "canonical", href: seo?.canonical_url || `${ORIGIN}/blog` }],
     };
   },
   component: BlogPage,

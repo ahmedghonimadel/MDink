@@ -4,4 +4,4 @@ Disallow: /auth
 Disallow: /dashboard
 Disallow: /admin
 
-Sitemap: /sitemap.xml
+Sitemap: https://mdinksolutions.com/sitemap.xml

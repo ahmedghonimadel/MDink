@@ -6,6 +6,7 @@ import { Stethoscope, ArrowLeft, CheckCircle2, Sparkles, Play, Star } from "luci
 import { useLocale } from "@/lib/i18n";
 import { supabase } from "@/integrations/supabase/client";
 import { getPageSeo } from "@/lib/content";
+import { SITE_ORIGIN, SITE } from "@/lib/site-config";
 import { pickIcon } from "@/lib/cms";
 import { Reveal } from "@/components/Reveal";
 import { CountUp } from "@/components/CountUp";
@@ -18,21 +19,68 @@ export const Route = createFileRoute("/")({
   },
   head: ({ loaderData }) => {
     const seo = loaderData?.seo;
-    const title = seo?.meta_title_ar || "MDink for Digital Solutions";
+    const ORIGIN = SITE_ORIGIN;
+    // عناوين/أوصاف تلقائية غنية بالكلمات المفتاحية — تُستخدم بدون أي إدخال يدوي
+    const title =
+      seo?.meta_title_ar ||
+      "MDink Solutions — تسويق طبي احترافي للأطباء والعيادات | مواقع، SEO طبي، سوشيال ميديا";
     const desc =
       seo?.meta_description_ar ||
-      "MDink Solutions تمنح كل طبيب موقعًا احترافيًا مملوكًا له بالكامل، مع إدارة شاملة للسوشيال ميديا وحملات السيو والإعلانات الطبية.";
+      "تسويق طبي متكامل للأطباء والعيادات والمستشفيات: موقع احترافي مملوك للطبيب، تحسين الظهور في جوجل (SEO طبي)، إدارة سوشيال ميديا، وحملات إعلانية تجذب مرضى حقيقيين. اظهر لمرضاك في اللحظة المناسبة مع MDink Solutions.";
+    const ogImage = seo?.og_image_url || `${ORIGIN}/icons/icon-512.png`;
+    const jsonLd = {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Organization",
+          "@id": `${ORIGIN}/#organization`,
+          name: "MDink Solutions",
+          url: ORIGIN,
+          logo: `${ORIGIN}/icons/icon-512.png`,
+          description: desc,
+          areaServed: "EG",
+          sameAs: [SITE.social.facebook, SITE.social.instagram, SITE.social.linkedin],
+        },
+        {
+          "@type": "WebSite",
+          "@id": `${ORIGIN}/#website`,
+          url: ORIGIN,
+          name: "MDink Solutions",
+          inLanguage: "ar",
+          publisher: { "@id": `${ORIGIN}/#organization` },
+        },
+        {
+          "@type": "ProfessionalService",
+          name: "MDink Solutions — تسويق طبي",
+          url: ORIGIN,
+          image: ogImage,
+          description: desc,
+          serviceType: ["تسويق طبي", "تصميم مواقع طبية", "SEO طبي", "إدارة سوشيال ميديا طبية"],
+          provider: { "@id": `${ORIGIN}/#organization` },
+        },
+      ],
+    };
     return {
       meta: [
         { title },
         { name: "description", content: desc },
+        {
+          name: "keywords",
+          content:
+            "تسويق طبي, تسويق للأطباء, تسويق العيادات, SEO طبي, تحسين ظهور الطبيب في جوجل, مواقع طبية, تصميم موقع طبي, سوشيال ميديا طبية, إعلانات طبية, MDink Solutions",
+        },
         { property: "og:title", content: title },
         { property: "og:description", content: desc },
         { property: "og:type", content: "website" },
-        ...(seo?.og_image_url ? [{ property: "og:image", content: seo.og_image_url }] : []),
+        { property: "og:url", content: ORIGIN },
+        { property: "og:image", content: ogImage },
+        { name: "twitter:card", content: "summary_large_image" },
         { name: "robots", content: seo?.robots || "index,follow" },
       ],
-      links: seo?.canonical_url ? [{ rel: "canonical", href: seo.canonical_url }] : [],
+      links: [{ rel: "canonical", href: seo?.canonical_url || ORIGIN }],
+      scripts: [
+        { type: "application/ld+json", children: JSON.stringify(jsonLd) },
+      ],
     };
   },
   component: HomePage,

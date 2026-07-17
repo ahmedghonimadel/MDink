@@ -5,6 +5,7 @@ import { MarketingLayout } from "@/components/MarketingLayout";
 import { CheckCircle2, ArrowLeft, Camera, Video, Palette, Megaphone } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { getPageSeo } from "@/lib/content";
+import { canonical } from "@/lib/site-config";
 import { useLocale } from "@/lib/i18n";
 import { localized, pickIcon } from "@/lib/cms";
 import { Button } from "@/components/ui/button";
@@ -25,11 +26,18 @@ export const Route = createFileRoute("/services")({
       meta: [
         { title },
         { name: "description", content: desc },
+        {
+          name: "keywords",
+          content:
+            "خدمات تسويق طبي, تصميم مواقع طبية, SEO طبي, سوشيال ميديا للأطباء, إعلانات طبية, تصوير عيادات, ريلز طبية, إدارة عيادات",
+        },
         { property: "og:title", content: title },
         { property: "og:description", content: desc },
+        { property: "og:type", content: "website" },
+        { property: "og:url", content: canonical("/services") },
         { name: "robots", content: seo?.robots || "index,follow" },
       ],
-      links: seo?.canonical_url ? [{ rel: "canonical", href: seo.canonical_url }] : [],
+      links: [{ rel: "canonical", href: seo?.canonical_url || canonical("/services") }],
     };
   },
   component: ServicesPage,

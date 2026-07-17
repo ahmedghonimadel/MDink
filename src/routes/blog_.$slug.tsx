@@ -22,9 +22,9 @@ import { sanitizeBlogHtml } from "@/lib/sanitize-html";
 import { Reveal } from "@/components/Reveal";
 import { BlockRenderer, headingId, type Block } from "@/components/BlockRenderer";
 import { FaqAccordion, type FaqItem } from "@/components/FaqAccordion";
+import { SITE_ORIGIN } from "@/lib/site-config";
 
 const WHATSAPP = "https://wa.me/201020658409";
-const SITE_ORIGIN = "https://mdinksolutions.com";
 
 export const Route = createFileRoute("/blog_/$slug")({
   loader: async ({ params }) => {

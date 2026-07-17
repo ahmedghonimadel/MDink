@@ -11,6 +11,7 @@ import { useEffect, type ReactNode } from "react";
 import { Toaster } from "@/components/ui/sonner";
 
 import appCss from "../styles.css?url";
+import { SITE_ORIGIN, SITE } from "@/lib/site-config";
 import { reportError } from "../lib/error-reporting";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -112,8 +113,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         content:
           "MDink Solutions: مواقع طبية احترافية، إدارة سوشيال ميديا، سيو طبي، وحملات إعلانية للأطباء والعيادات والمراكز الطبية في مصر والشرق الأوسط.",
       },
-      { property: "og:image", content: "/icons/icon-512.png" },
-      { name: "twitter:image", content: "/icons/icon-512.png" },
+      { property: "og:image", content: `${SITE_ORIGIN}/icons/icon-512.png` },
+      { name: "twitter:image", content: `${SITE_ORIGIN}/icons/icon-512.png` },
+      { property: "og:site_name", content: "MDink Solutions" },
+      { property: "og:locale", content: "ar_EG" },
       { name: "theme-color", content: "#1d3fb3" },
     ],
     links: [
@@ -135,15 +138,16 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         children: JSON.stringify({
           "@context": "https://schema.org",
           "@type": "Organization",
-          name: "MDink for Digital Solutions",
-          url: "/",
-          logo: "/icons/icon-512.png",
+          "@id": `${SITE_ORIGIN}/#organization`,
+          name: "MDink Solutions",
+          alternateName: "MDink for Digital Solutions",
+          url: SITE_ORIGIN,
+          logo: `${SITE_ORIGIN}/icons/icon-512.png`,
+          email: SITE.email,
+          areaServed: "EG",
           description:
             "وكالة تسويق رقمي متخصصة في القطاع الطبي — مواقع مملوكة للأطباء، سيو طبي، حملات إعلانية، وإدارة سوشيال ميديا.",
-          sameAs: [
-            "https://www.facebook.com/MDinksolutions",
-            "https://www.linkedin.com/company/mdink/",
-          ],
+          sameAs: [SITE.social.facebook, SITE.social.instagram, SITE.social.linkedin],
         }),
       },
     ],

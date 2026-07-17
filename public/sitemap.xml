@@ -3,8 +3,15 @@
   <url><loc>https://mdinksolutions.com/</loc><priority>1.0</priority></url>
   <url><loc>https://mdinksolutions.com/services</loc><priority>0.9</priority></url>
   <url><loc>https://mdinksolutions.com/portfolio</loc><priority>0.9</priority></url>
+  <url><loc>https://mdinksolutions.com/reviews</loc><priority>0.8</priority></url>
   <url><loc>https://mdinksolutions.com/blog</loc><priority>0.8</priority></url>
-  <url><loc>https://mdinksolutions.com/about</loc><priority>0.8</priority></url>
+  <url><loc>https://mdinksolutions.com/about</loc><priority>0.7</priority></url>
   <url><loc>https://mdinksolutions.com/contact</loc><priority>0.9</priority></url>
-  <url><loc>https://mdinksolutions.com/join</loc><priority>0.7</priority></url>
+  <url><loc>https://mdinksolutions.com/links</loc><priority>0.5</priority></url>
+  <url><loc>https://mdinksolutions.com/blog/medical-marketing-where-to-start</loc><lastmod>2026-07-15</lastmod><priority>0.7</priority></url>
+  <url><loc>https://mdinksolutions.com/blog/why-doctors-need-professional-medical-marketing</loc><lastmod>2026-07-10</lastmod><priority>0.7</priority></url>
+  <url><loc>https://mdinksolutions.com/blog/professional-medical-website-first-impression</loc><lastmod>2026-07-10</lastmod><priority>0.7</priority></url>
+  <url><loc>https://mdinksolutions.com/blog/digital-system-clinic-daily-organization</loc><lastmod>2026-07-10</lastmod><priority>0.7</priority></url>
+  <url><loc>https://mdinksolutions.com/blog/how-doctors-appear-professionally-on-google</loc><lastmod>2026-07-10</lastmod><priority>0.7</priority></url>
+  <url><loc>https://mdinksolutions.com/blog/medical-content-builds-patient-trust</loc><lastmod>2026-07-10</lastmod><priority>0.7</priority></url>
 </urlset>
