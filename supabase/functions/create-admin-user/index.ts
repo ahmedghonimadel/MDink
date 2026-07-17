@@ -101,8 +101,10 @@ Deno.serve(async (req) => {
     email_confirm: true,
     user_metadata: { full_name: fullName },
   });
-  if (createError && !createError.message.toLowerCase().includes("already"))
-    return json({ error: createError.message }, 400);
+  if (createError && !String(createError.message ?? "").toLowerCase().includes("already")) {
+    console.error("[create-admin-user] createUser failed:", JSON.stringify(createError));
+    return json({ error: `createUser: ${createError.message || JSON.stringify(createError)}` }, 400);
+  }
 
   let userId = created?.user?.id;
   if (!userId) {
@@ -116,13 +118,19 @@ Deno.serve(async (req) => {
   const { error: profileError } = await adminClient
     .from("profiles")
     .upsert({ id: userId, username, full_name: fullName, email, is_published: false });
-  if (profileError) return json({ error: profileError.message }, 500);
+  if (profileError) {
+    console.error("[create-admin-user] profiles failed:", JSON.stringify(profileError));
+    return json({ error: `profiles: ${profileError.message || JSON.stringify(profileError)}` }, 500);
+  }
 
   // user_roles — لأجل is_admin في RLS
   const { error: urErr } = await adminClient
     .from("user_roles")
     .upsert({ user_id: userId, role: target.user }, { onConflict: "user_id,role" });
-  if (urErr) return json({ error: urErr.message }, 500);
+  if (urErr) {
+    console.error("[create-admin-user] user_roles failed:", JSON.stringify(urErr));
+    return json({ error: `user_roles: ${urErr.message || JSON.stringify(urErr)}` }, 500);
+  }
 
   // admin_users — مصدر الوصول للتطبيق (هذا ما كان ناقصًا: بدونه لا يستطيع المستخدم الدخول)
   const { error: auErr } = await adminClient
@@ -131,7 +139,10 @@ Deno.serve(async (req) => {
       { user_id: userId, email, role: target.admin, is_active: true },
       { onConflict: "user_id" },
     );
-  if (auErr) return json({ error: auErr.message }, 500);
+  if (auErr) {
+    console.error("[create-admin-user] admin_users failed:", JSON.stringify(auErr));
+    return json({ error: `admin_users: ${auErr.message || JSON.stringify(auErr)}` }, 500);
+  }
 
   // team_profiles — للأدوار الوظيفية (عرض + توزيع مهام). أفضل جهد: لا نُفشل الإنشاء إن تعذّر.
   if (jobRole) {
