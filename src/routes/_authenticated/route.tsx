@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   BarChart3,
   BriefcaseBusiness,
+  CircleDollarSign,
   ClipboardList,
   Contact,
   FileSpreadsheet,
@@ -142,6 +143,9 @@ function AuthenticatedLayout() {
               <SideLink to="/admin/clients" icon={Users}>
                 العملاء والمدفوعات
               </SideLink>
+              <SideLink to="/admin/payments" icon={CircleDollarSign}>
+                المدفوعات
+              </SideLink>
               <SideLink to="/admin/team-tasks" icon={ClipboardList}>
                 مهام الفريق
               </SideLink>
@@ -150,6 +154,15 @@ function AuthenticatedLayout() {
               </SideLink>
               <SideLink to="/admin/exports" icon={FileSpreadsheet}>
                 تصدير Excel
+              </SideLink>
+            </>
+          )}
+          {/* محاسب فقط (بلا صلاحيات عمليات) — قسم مالي مستقل */}
+          {session?.isAccountant && !session?.isOperationsAdmin && (
+            <>
+              <div className="mt-6 px-3 text-xs font-semibold text-muted-foreground">المالية</div>
+              <SideLink to="/admin/payments" icon={CircleDollarSign}>
+                المدفوعات
               </SideLink>
             </>
           )}

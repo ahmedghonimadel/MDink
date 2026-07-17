@@ -7,6 +7,7 @@ export type MdinkRole =
   | "super_admin"
   | "website_admin"
   | "operations_admin"
+  | "accountant"
   | "team_member"
   | "viewer"
   | "admin"
@@ -19,6 +20,7 @@ export type AdminSession = {
   isSuperAdmin: boolean;
   isWebsiteAdmin: boolean;
   isOperationsAdmin: boolean;
+  isAccountant: boolean;
   isTeamMember: boolean;
 };
 
@@ -28,6 +30,7 @@ const dashboardRoles = new Set<MdinkRole>([
   "super_admin",
   "website_admin",
   "operations_admin",
+  "accountant",
   "team_member",
   "viewer",
   "admin",
@@ -53,14 +56,18 @@ export async function getAdminSession(): Promise<AdminSession | null> {
   const roles: MdinkRole[] = [];
   if (isCoreAdmin || dashRole === "admin") roles.push("super_admin", "website_admin", "operations_admin", "admin");
   else if (dashRole === "editor") roles.push("website_admin");
+  else if (dashRole === "accountant") roles.push("accountant");
   else if (dashRole === "viewer") roles.push("viewer");
 
+  const isSuperAdmin = isCoreAdmin || dashRole === "admin";
   return {
     user: data.user,
     roles,
-    isSuperAdmin: isCoreAdmin || dashRole === "admin",
+    isSuperAdmin,
     isWebsiteAdmin: isCoreAdmin || dashRole === "admin" || dashRole === "editor",
-    isOperationsAdmin: isCoreAdmin || dashRole === "admin",
+    isOperationsAdmin: isSuperAdmin,
+    // المحاسب (أو أي أدمن عمليات) يرى الشؤون المالية
+    isAccountant: isSuperAdmin || dashRole === "accountant",
     isTeamMember: false,
   };
 }
@@ -87,6 +94,13 @@ export async function requireOperationsAdmin() {
 export async function requireSuperAdmin() {
   const session = await requireDashboard();
   if (!session.isSuperAdmin) throw redirect({ to: "/dashboard" });
+  return session;
+}
+
+// وصول الشؤون المالية: المحاسب أو أدمن العمليات/السوبر
+export async function requireFinancialAccess() {
+  const session = await requireDashboard();
+  if (!session.isAccountant && !session.isOperationsAdmin) throw redirect({ to: "/dashboard" });
   return session;
 }
 

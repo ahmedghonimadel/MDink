@@ -2,7 +2,18 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Download, Plus, Trash2, Search, Edit, Save, X, Wallet, TrendingUp } from "lucide-react";
+import {
+  Download,
+  Plus,
+  Trash2,
+  Search,
+  Edit,
+  Save,
+  X,
+  Wallet,
+  TrendingUp,
+  AlertTriangle,
+} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -100,6 +111,16 @@ function ClientsAdmin() {
   function paymentOf(clientId: string) {
     return payments.find((p: any) => p.client_id === clientId);
   }
+
+  // عميل فعلي (نشط/تم التسليم) لكن بلا بيانات دفع → يحتاج استكمال «خدنا كام»
+  function needsPayment(r: any) {
+    const isRealClient = ["active", "delivered"].includes(r.project_status);
+    const pay = paymentOf(r.id);
+    const hasAmount = pay && Number(pay.total_amount) > 0;
+    return isRealClient && !hasAmount;
+  }
+
+  const missingPaymentCount = rows.filter((r: any) => needsPayment(r)).length;
 
   function resetForm() {
     setForm(emptyForm);
@@ -291,6 +312,17 @@ function ClientsAdmin() {
           <Download className="ml-2 h-4 w-4" /> تصدير Excel
         </Button>
       </header>
+
+      {/* تنبيه: عملاء محوّلون بلا بيانات دفع */}
+      {missingPaymentCount > 0 ? (
+        <div className="flex items-center gap-3 rounded-2xl border border-amber-500/40 bg-amber-500/10 px-5 py-3 text-sm text-amber-700">
+          <AlertTriangle className="h-5 w-5 shrink-0" />
+          <span>
+            <b>{missingPaymentCount}</b> عميل بحاجة لاستكمال بيانات الدفع (خدنا كام والتفاصيل). اضغط
+            «تعديل» على العميل لإضافة المبلغ.
+          </span>
+        </div>
+      ) : null}
 
       {/* Stats: عملاء + تحويل */}
       <div className="grid gap-4 sm:grid-cols-3">
@@ -562,6 +594,11 @@ function ClientsAdmin() {
                   {st ? (
                     <span className={`rounded-full px-3 py-1 text-xs font-semibold ${st.color}`}>
                       {st.label}
+                    </span>
+                  ) : null}
+                  {needsPayment(r) ? (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/15 px-3 py-1 text-xs font-semibold text-amber-600">
+                      <AlertTriangle className="h-3.5 w-3.5" /> أكمل بيانات الدفع
                     </span>
                   ) : null}
                   <Button variant="ghost" size="icon" onClick={() => editClient(r)}>

@@ -4,15 +4,22 @@ import { Link } from "@tanstack/react-router";
 import { Bell, Check, CheckCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
+// أعمدة الجدول الفعلية في قاعدة البيانات (recipient_user_id/title_ar/message_ar/…)
 type Notification = {
   id: string;
-  title: string;
-  body: string | null;
-  link: string | null;
-  type: string;
+  title_ar: string | null;
+  message_ar: string | null;
+  notification_type: string | null;
+  related_entity_type: string | null;
+  related_entity_id: string | null;
   is_read: boolean;
   created_at: string;
 };
+
+// رابط النقر يُخزَّن في related_entity_id عندما related_entity_type = "link"
+function notifLink(n: Notification): string | null {
+  return n.related_entity_type === "link" ? n.related_entity_id : null;
+}
 
 /**
  * جرس الإشعارات — يظهر في رأس لوحة التحكم.
@@ -37,7 +44,7 @@ export function NotificationsBell() {
         await db
           .from("notifications")
           .select("*")
-          .eq("user_id", userId)
+          .eq("recipient_user_id", userId)
           .order("created_at", { ascending: false })
           .limit(30)
       ).data ?? [],
@@ -46,15 +53,18 @@ export function NotificationsBell() {
   const unreadCount = notifications.filter((n) => !n.is_read).length;
 
   async function markRead(id: string) {
-    await db.from("notifications").update({ is_read: true }).eq("id", id);
+    await db
+      .from("notifications")
+      .update({ is_read: true, read_at: new Date().toISOString() })
+      .eq("id", id);
     qc.invalidateQueries({ queryKey: ["my-notifications"] });
   }
 
   async function markAllRead() {
     await db
       .from("notifications")
-      .update({ is_read: true })
-      .eq("user_id", userId)
+      .update({ is_read: true, read_at: new Date().toISOString() })
+      .eq("recipient_user_id", userId)
       .eq("is_read", false);
     qc.invalidateQueries({ queryKey: ["my-notifications"] });
   }
@@ -109,9 +119,11 @@ export function NotificationsBell() {
                           }`}
                         />
                         <div className="min-w-0 flex-1">
-                          <div className="text-sm font-medium">{n.title}</div>
-                          {n.body ? (
-                            <div className="mt-0.5 text-xs text-muted-foreground">{n.body}</div>
+                          <div className="text-sm font-medium">{n.title_ar}</div>
+                          {n.message_ar ? (
+                            <div className="mt-0.5 text-xs text-muted-foreground">
+                              {n.message_ar}
+                            </div>
                           ) : null}
                           <div className="mt-1 text-[11px] text-muted-foreground">
                             {new Date(n.created_at).toLocaleString("ar-EG")}
@@ -132,10 +144,11 @@ export function NotificationsBell() {
                         ) : null}
                       </div>
                     );
-                    return n.link ? (
+                    const link = notifLink(n);
+                    return link ? (
                       <Link
                         key={n.id}
-                        to={n.link as never}
+                        to={link as never}
                         onClick={() => {
                           markRead(n.id);
                           setOpen(false);
@@ -168,12 +181,16 @@ export async function createNotification(params: {
   type?: string;
 }) {
   const { data: auth } = await supabase.auth.getUser();
-  await (supabase as any).from("notifications").insert({
-    user_id: params.userId,
-    title: params.title,
-    body: params.body ?? null,
-    link: params.link ?? null,
-    type: params.type ?? "info",
-    created_by: auth.user?.id ?? null,
+  const { error } = await (supabase as any).from("notifications").insert({
+    recipient_user_id: params.userId,
+    sender_user_id: auth.user?.id ?? null,
+    title_ar: params.title,
+    message_ar: params.body ?? null,
+    notification_type: params.type ?? "info",
+    // نُخزّن رابط النقر في related_entity_id ليقرأه جرس الإشعارات
+    related_entity_type: params.link ? "link" : null,
+    related_entity_id: params.link ?? null,
   });
+  if (error) console.error("[notifications] insert failed", error.message);
+  return { error };
 }
