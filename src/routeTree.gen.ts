@@ -32,6 +32,7 @@ import { Route as AuthenticatedAdminTeamRouteImport } from './routes/_authentica
 import { Route as AuthenticatedAdminSettingsRouteImport } from './routes/_authenticated/admin.settings'
 import { Route as AuthenticatedAdminServicesRouteImport } from './routes/_authenticated/admin.services'
 import { Route as AuthenticatedAdminReviewsRouteImport } from './routes/_authenticated/admin.reviews'
+import { Route as AuthenticatedAdminProjectsRouteImport } from './routes/_authenticated/admin.projects'
 import { Route as AuthenticatedAdminPortfolioRouteImport } from './routes/_authenticated/admin.portfolio'
 import { Route as AuthenticatedAdminPaymentsRouteImport } from './routes/_authenticated/admin.payments'
 import { Route as AuthenticatedAdminLinksRouteImport } from './routes/_authenticated/admin.links'
@@ -168,6 +169,12 @@ const AuthenticatedAdminReviewsRoute =
     path: '/admin/reviews',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedAdminProjectsRoute =
+  AuthenticatedAdminProjectsRouteImport.update({
+    id: '/admin/projects',
+    path: '/admin/projects',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedAdminPortfolioRoute =
   AuthenticatedAdminPortfolioRouteImport.update({
     id: '/admin/portfolio',
@@ -268,6 +275,7 @@ export interface FileRoutesByFullPath {
   '/admin/links': typeof AuthenticatedAdminLinksRoute
   '/admin/payments': typeof AuthenticatedAdminPaymentsRoute
   '/admin/portfolio': typeof AuthenticatedAdminPortfolioRoute
+  '/admin/projects': typeof AuthenticatedAdminProjectsRoute
   '/admin/reviews': typeof AuthenticatedAdminReviewsRoute
   '/admin/services': typeof AuthenticatedAdminServicesRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
@@ -305,6 +313,7 @@ export interface FileRoutesByTo {
   '/admin/links': typeof AuthenticatedAdminLinksRoute
   '/admin/payments': typeof AuthenticatedAdminPaymentsRoute
   '/admin/portfolio': typeof AuthenticatedAdminPortfolioRoute
+  '/admin/projects': typeof AuthenticatedAdminProjectsRoute
   '/admin/reviews': typeof AuthenticatedAdminReviewsRoute
   '/admin/services': typeof AuthenticatedAdminServicesRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
@@ -344,6 +353,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/links': typeof AuthenticatedAdminLinksRoute
   '/_authenticated/admin/payments': typeof AuthenticatedAdminPaymentsRoute
   '/_authenticated/admin/portfolio': typeof AuthenticatedAdminPortfolioRoute
+  '/_authenticated/admin/projects': typeof AuthenticatedAdminProjectsRoute
   '/_authenticated/admin/reviews': typeof AuthenticatedAdminReviewsRoute
   '/_authenticated/admin/services': typeof AuthenticatedAdminServicesRoute
   '/_authenticated/admin/settings': typeof AuthenticatedAdminSettingsRoute
@@ -383,6 +393,7 @@ export interface FileRouteTypes {
     | '/admin/links'
     | '/admin/payments'
     | '/admin/portfolio'
+    | '/admin/projects'
     | '/admin/reviews'
     | '/admin/services'
     | '/admin/settings'
@@ -420,6 +431,7 @@ export interface FileRouteTypes {
     | '/admin/links'
     | '/admin/payments'
     | '/admin/portfolio'
+    | '/admin/projects'
     | '/admin/reviews'
     | '/admin/services'
     | '/admin/settings'
@@ -458,6 +470,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/links'
     | '/_authenticated/admin/payments'
     | '/_authenticated/admin/portfolio'
+    | '/_authenticated/admin/projects'
     | '/_authenticated/admin/reviews'
     | '/_authenticated/admin/services'
     | '/_authenticated/admin/settings'
@@ -649,6 +662,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminReviewsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/admin/projects': {
+      id: '/_authenticated/admin/projects'
+      path: '/admin/projects'
+      fullPath: '/admin/projects'
+      preLoaderRoute: typeof AuthenticatedAdminProjectsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/admin/portfolio': {
       id: '/_authenticated/admin/portfolio'
       path: '/admin/portfolio'
@@ -757,6 +777,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminLinksRoute: typeof AuthenticatedAdminLinksRoute
   AuthenticatedAdminPaymentsRoute: typeof AuthenticatedAdminPaymentsRoute
   AuthenticatedAdminPortfolioRoute: typeof AuthenticatedAdminPortfolioRoute
+  AuthenticatedAdminProjectsRoute: typeof AuthenticatedAdminProjectsRoute
   AuthenticatedAdminReviewsRoute: typeof AuthenticatedAdminReviewsRoute
   AuthenticatedAdminServicesRoute: typeof AuthenticatedAdminServicesRoute
   AuthenticatedAdminSettingsRoute: typeof AuthenticatedAdminSettingsRoute
@@ -785,6 +806,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminLinksRoute: AuthenticatedAdminLinksRoute,
   AuthenticatedAdminPaymentsRoute: AuthenticatedAdminPaymentsRoute,
   AuthenticatedAdminPortfolioRoute: AuthenticatedAdminPortfolioRoute,
+  AuthenticatedAdminProjectsRoute: AuthenticatedAdminProjectsRoute,
   AuthenticatedAdminReviewsRoute: AuthenticatedAdminReviewsRoute,
   AuthenticatedAdminServicesRoute: AuthenticatedAdminServicesRoute,
   AuthenticatedAdminSettingsRoute: AuthenticatedAdminSettingsRoute,

@@ -7,6 +7,7 @@ import {
   ClipboardList,
   Contact,
   FileSpreadsheet,
+  FolderKanban,
   Home,
   LogOut,
   Menu,
@@ -147,6 +148,9 @@ function AuthenticatedLayout() {
               </SideLink>
               <SideLink to="/admin/team-tasks" icon={ClipboardList}>
                 مهام الفريق
+              </SideLink>
+              <SideLink to="/admin/projects" icon={FolderKanban}>
+                المشاريع
               </SideLink>
               <SideLink to="/admin/exports" icon={FileSpreadsheet}>
                 تصدير Excel

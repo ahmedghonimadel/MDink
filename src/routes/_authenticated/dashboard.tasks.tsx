@@ -441,8 +441,16 @@ function TasksDashboard() {
               dir="ltr"
             />
 
+            {/* رابط العمل موحّد لكل الأدوار (فيديو/تصميم/درايف/أي لينك) */}
+            <Field
+              label={en ? "Work link (video / design / drive)" : "رابط العمل (فيديو / تصميم / درايف)"}
+              value={roleData.deliverable_url ?? ""}
+              onChange={(v) => setRD("deliverable_url", v)}
+              dir="ltr"
+            />
+
             <ImageUpload
-              label={en ? "Attach file / proof" : "إرفاق ملف / إثبات"}
+              label={en ? "Attach image / proof" : "إرفاق صورة / إثبات"}
               value={form.proof_url}
               onChange={(v) => setForm({ ...form, proof_url: v })}
               folder="tasks"
