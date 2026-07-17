@@ -48,6 +48,13 @@ const FIELDS: Field[] = [
     schema: z.string().trim().min(5).max(40),
   },
   {
+    key: "contact_email",
+    label: "البريد الإلكتروني",
+    help: "يظهر في صفحة التواصل والفوتر",
+    type: "email",
+    schema: z.string().trim().email().max(160),
+  },
+  {
     key: "whatsapp_number",
     label: "رقم واتساب (دولي بدون +)",
     help: "مثال: 201020658409",
@@ -56,48 +63,6 @@ const FIELDS: Field[] = [
       .string()
       .trim()
       .regex(/^\d{8,15}$/, "أرقام فقط، 8-15 رقم"),
-  },
-  {
-    key: "facebook_url",
-    label: "رابط فيسبوك",
-    help: "URL كامل",
-    type: "url",
-    schema: z.string().trim().url().max(300),
-  },
-  {
-    key: "instagram_url",
-    label: "رابط إنستجرام",
-    help: "URL كامل",
-    type: "url",
-    schema: z.string().trim().url().max(300),
-  },
-  {
-    key: "linkedin_url",
-    label: "رابط لينكدإن",
-    help: "URL كامل",
-    type: "url",
-    schema: z.string().trim().url().max(300),
-  },
-  {
-    key: "twitter_url",
-    label: "رابط X / تويتر",
-    help: "URL كامل",
-    type: "url",
-    schema: z.string().trim().url().max(300),
-  },
-  {
-    key: "tiktok_url",
-    label: "رابط تيك توك",
-    help: "URL كامل",
-    type: "url",
-    schema: z.string().trim().url().max(300),
-  },
-  {
-    key: "meta_title_suffix",
-    label: "لاحقة عنوان الصفحة",
-    help: "تظهر في تبويب المتصفح",
-    type: "text",
-    schema: z.string().trim().min(2).max(80),
   },
   {
     key: "footer_about_text",
@@ -210,7 +175,14 @@ function AdminSettings() {
       <header>
         <h1 className="text-3xl font-bold">إعدادات الموقع</h1>
         <p className="mt-1 text-muted-foreground">
-          يتم تحديث المحتوى مباشرة على كل صفحات الموقع بعد الحفظ.
+          يتم تحديث المحتوى مباشرة على كل صفحات الموقع بعد الحفظ. كل حقل هنا يُحفظ فعليًا.
+        </p>
+        <p className="mt-2 text-sm text-muted-foreground">
+          روابط السوشيال (فيسبوك، إنستجرام، تيك توك…) تُدار من صفحة{" "}
+          <a href="/admin/contact-settings" className="font-semibold text-brand hover:underline">
+            التواصل والسوشيال
+          </a>
+          .
         </p>
       </header>
 
