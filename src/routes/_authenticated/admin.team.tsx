@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { requireSuperAdmin, SUPER_ADMIN_EMAILS } from "@/lib/admin";
+import { roleLabel } from "@/lib/roles";
 import { logAudit } from "@/lib/audit";
 
 export const Route = createFileRoute("/_authenticated/admin/team")({
@@ -16,28 +17,51 @@ export const Route = createFileRoute("/_authenticated/admin/team")({
   component: AdminUsers,
 });
 
+// الأدوار المتاحة للاختيار (السوبر أدمن غير متاح — مثبّت للإيميلين المحميّين فقط)
+const ROLE_GROUPS = [
+  {
+    group: "الإدارة",
+    items: [
+      { value: "website_admin", label: "مدير الموقع (يعاين ويعدّل الموقع)" },
+      { value: "accountant", label: "محاسب (المدفوعات فقط)" },
+    ],
+  },
+  {
+    group: "أعضاء الفريق (إشعارات مهام + تسجيل عمل فقط)",
+    items: [
+      { value: "content_writer", label: "كاتب محتوى" },
+      { value: "video_editor", label: "محرر فيديو" },
+      { value: "graphic_designer", label: "مصمم جرافيك" },
+      { value: "photographer", label: "مصور" },
+      { value: "moderator", label: "مودريتور" },
+      { value: "medical_reviewer", label: "مراجع طبي" },
+      { value: "web_developer", label: "مطور ويب" },
+      { value: "custom", label: "دور مخصص…" },
+    ],
+  },
+] as const;
+
+const ROLE_VALUES = ROLE_GROUPS.flatMap((g) => g.items.map((i) => i.value)) as [
+  string,
+  ...string[],
+];
+
 const addSchema = z.object({
-  full_name: z.string().trim().min(2).max(120),
-  email: z.string().trim().email().max(160),
-  password: z.string().min(8).max(72),
-  role: z.enum(["super_admin", "website_admin", "operations_admin", "team_member", "viewer"]),
+  full_name: z.string().trim().min(2, "الاسم مطلوب").max(120),
+  email: z.string().trim().email("بريد غير صحيح").max(160),
+  password: z.string().min(8, "كلمة المرور 8 أحرف على الأقل").max(72),
+  role: z.enum(ROLE_VALUES),
+  custom_role: z.string().trim().max(60).optional(),
 });
 
-type Role = z.infer<typeof addSchema>["role"];
-type Row = {
-  id: string;
-  user_id: string;
-  role: string;
-  email: string | null;
-  full_name: string | null;
-};
+type Row = { id: string; user_id: string; role: string; email: string | null };
 
-const roleLabels: Record<Role, string> = {
-  super_admin: "Super Admin",
-  website_admin: "Website Admin",
-  operations_admin: "Operations Admin",
-  team_member: "Team Member",
-  viewer: "Viewer",
+// عرض اسم الصلاحية من admin_users.role
+const ADMIN_ROLE_LABEL: Record<string, string> = {
+  admin: "سوبر أدمن",
+  editor: "مدير الموقع",
+  accountant: "محاسب",
+  viewer: "عضو فريق",
 };
 
 function AdminUsers() {
@@ -46,8 +70,10 @@ function AdminUsers() {
     full_name: "",
     email: "",
     password: "",
-    role: "team_member" as Role,
+    role: "content_writer" as string,
+    custom_role: "",
   });
+
   const { data: rows = [], isLoading } = useQuery<Row[]>({
     queryKey: ["admin-users-list"],
     queryFn: async () => {
@@ -61,10 +87,28 @@ function AdminUsers() {
         user_id: r.user_id,
         role: r.role,
         email: r.email,
-        full_name: r.email,
       }));
     },
   });
+
+  // أدوار الفريق الوظيفية للعرض (كاتب محتوى/مصور…) بجانب صلاحية «عضو فريق»
+  const { data: profiles = [] } = useQuery({
+    queryKey: ["team-profiles-roles"],
+    queryFn: async () =>
+      (await (supabase as any).from("team_profiles").select("user_id,roles")).data ?? [],
+  });
+  const jobRoleOf = (userId: string): string | null => {
+    const p = profiles.find((x: any) => x.user_id === userId);
+    const key = Array.isArray(p?.roles) ? p.roles[0] : null;
+    return key ? roleLabel(key, "ar") : null;
+  };
+
+  function roleDisplay(row: Row): string {
+    if (row.email && SUPER_ADMIN_EMAILS.includes(row.email.toLowerCase() as any))
+      return "سوبر أدمن";
+    if (row.role === "viewer") return jobRoleOf(row.user_id) || "عضو فريق";
+    return ADMIN_ROLE_LABEL[row.role] ?? row.role;
+  }
 
   async function addUser() {
     const parsed = addSchema.safeParse(form);
@@ -72,17 +116,20 @@ function AdminUsers() {
       toast.error(parsed.error.issues[0]?.message ?? "بيانات غير صحيحة");
       return;
     }
+    if (form.role === "custom" && form.custom_role.trim().length < 2) {
+      toast.error("اكتب اسم الدور المخصص");
+      return;
+    }
     const { data: fnData, error } = await supabase.functions.invoke("create-admin-user", {
       body: parsed.data,
     });
     if (error) {
-      // حاول استخراج رسالة الخطأ الحقيقية من الـ Edge Function
       let detail = error.message;
       try {
         const ctx = (error as any).context;
         if (ctx && typeof ctx.json === "function") {
-          const body = await ctx.json();
-          if (body?.error) detail = body.error;
+          const b = await ctx.json();
+          if (b?.error) detail = b.error;
         }
       } catch {
         /* تجاهل */
@@ -94,14 +141,14 @@ function AdminUsers() {
       toast.error(fnData.error);
       return;
     }
-    toast.success("تم إنشاء المستخدم وإرسال بياناته للإدارة");
+    toast.success("تم إنشاء المستخدم وتحديد صلاحيته ✓");
     await logAudit({
       action: "create",
       entity: "user",
       entityId: parsed.data.email,
-      details: { role: parsed.data.role },
+      details: { role: parsed.data.role, custom_role: parsed.data.custom_role || null },
     });
-    setForm({ full_name: "", email: "", password: "", role: "team_member" });
+    setForm({ full_name: "", email: "", password: "", role: "content_writer", custom_role: "" });
     qc.invalidateQueries({ queryKey: ["admin-users-list"] });
   }
 
@@ -110,43 +157,43 @@ function AdminUsers() {
       toast.error("لا يمكن حذف أو تخفيض حساب شيماء أو تسنيم");
       return;
     }
-    if (!confirm("إزالة هذه الصلاحية؟")) return;
+    if (!confirm("إزالة هذا المستخدم وصلاحيته؟")) return;
     const { error } = await (supabase as any).from("admin_users").delete().eq("id", row.id);
-    if (error) toast.error(error.message);
-    else {
-      toast.success("تمت إزالة الصلاحية");
-      await logAudit({
-        action: "role_change",
-        entity: "user_role",
-        entityId: row.email ?? row.id,
-        details: { removed_role: row.role },
-      });
-      qc.invalidateQueries({ queryKey: ["admin-users-list"] });
+    if (error) {
+      toast.error(error.message);
+      return;
     }
+    toast.success("تمت الإزالة");
+    await logAudit({
+      action: "role_change",
+      entity: "user_role",
+      entityId: row.email ?? row.id,
+      details: { removed_role: row.role },
+    });
+    qc.invalidateQueries({ queryKey: ["admin-users-list"] });
   }
+
+  const isCustom = form.role === "custom";
 
   return (
     <div className="space-y-6">
       <header>
         <h1 className="text-3xl font-bold">إدارة المستخدمين والصلاحيات</h1>
         <p className="mt-1 text-muted-foreground">
-          لا يوجد تسجيل حساب عام. الإدارة فقط تنشئ المستخدم وتحدد صلاحياته.
+          لا يوجد تسجيل حساب عام. الإدارة فقط تُنشئ المستخدم وتحدد صلاحيته. دور «سوبر أدمن» مثبّت
+          للإدارة العليا ولا يُمنح لأحد.
         </p>
       </header>
 
       <section className="rounded-2xl border border-border bg-card p-6 shadow-card">
-        <h2 className="text-xl font-bold">إنشاء مستخدم إداري</h2>
+        <h2 className="text-xl font-bold">إنشاء مستخدم</h2>
         <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-5">
           <Field
             label="الاسم"
             value={form.full_name}
             onChange={(v) => setForm({ ...form, full_name: v })}
           />
-          <Field
-            label="البريد"
-            value={form.email}
-            onChange={(v) => setForm({ ...form, email: v })}
-          />
+          <Field label="البريد" value={form.email} onChange={(v) => setForm({ ...form, email: v })} />
           <Field
             label="كلمة المرور"
             type="password"
@@ -154,23 +201,36 @@ function AdminUsers() {
             onChange={(v) => setForm({ ...form, password: v })}
           />
           <div>
-            <Label>الصلاحية</Label>
+            <Label>الصلاحية / الدور</Label>
             <select
               className="mt-1.5 h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
               value={form.role}
-              onChange={(e) => setForm({ ...form, role: e.target.value as Role })}
+              onChange={(e) => setForm({ ...form, role: e.target.value })}
             >
-              {Object.entries(roleLabels).map(([value, label]) => (
-                <option key={value} value={value}>
-                  {label}
-                </option>
+              {ROLE_GROUPS.map((g) => (
+                <optgroup key={g.group} label={g.group}>
+                  {g.items.map((i) => (
+                    <option key={i.value} value={i.value}>
+                      {i.label}
+                    </option>
+                  ))}
+                </optgroup>
               ))}
             </select>
           </div>
-          <Button onClick={addUser} className="mt-6 bg-brand text-brand-foreground">
-            <UserPlus className="ml-2 h-4 w-4" /> إنشاء
-          </Button>
+          {isCustom ? (
+            <Field
+              label="اسم الدور المخصص"
+              value={form.custom_role}
+              onChange={(v) => setForm({ ...form, custom_role: v })}
+            />
+          ) : (
+            <div className="hidden xl:block" />
+          )}
         </div>
+        <Button onClick={addUser} className="mt-4 bg-brand text-brand-foreground">
+          <UserPlus className="ml-2 h-4 w-4" /> إنشاء
+        </Button>
       </section>
 
       <section className="rounded-2xl border border-border bg-card p-6 shadow-card">
@@ -189,11 +249,11 @@ function AdminUsers() {
                 >
                   <Shield className="h-5 w-5 text-brand" />
                   <div className="min-w-0 flex-1">
-                    <div className="font-bold">{row.full_name ?? row.email ?? row.user_id}</div>
+                    <div className="font-bold">{row.email ?? row.user_id}</div>
                     <div className="text-xs text-muted-foreground">{row.email}</div>
                   </div>
                   <span className="rounded-full bg-brand/10 px-2 py-1 text-[11px] font-semibold text-brand">
-                    {row.role}
+                    {roleDisplay(row)}
                   </span>
                   {protectedAccount ? (
                     <span className="rounded-full bg-accent/20 px-2 py-1 text-[11px] font-semibold">
