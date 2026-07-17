@@ -45,6 +45,7 @@ function Onboarding() {
   });
 
   const [name, setName] = useState("");
+  const [displayTitle, setDisplayTitle] = useState("");
   const [imageUrl, setImageUrl] = useState("");
   const [roles, setRoles] = useState<RoleKey[]>([]);
   const [primaryRole, setPrimaryRole] = useState<string>("");
@@ -59,6 +60,7 @@ function Onboarding() {
   useEffect(() => {
     if (existing) {
       setName(existing.name_ar || existing.name_en || "");
+      setDisplayTitle(existing.display_title || "");
       setImageUrl(existing.image_url || "");
       setRoles(Array.isArray(existing.roles) ? existing.roles : []);
       setPrimaryRole(existing.primary_display_role || "");
@@ -81,6 +83,7 @@ function Onboarding() {
       user_id: userData?.id,
       name_ar: name.trim(),
       name_en: name.trim(),
+      display_title: displayTitle.trim() || null,
       image_url: imageUrl || null,
       email: userData?.email ?? null,
       roles,
@@ -119,14 +122,32 @@ function Onboarding() {
             <Label className="mb-2 block">{en ? "Your photo" : "صورتك"}</Label>
             <ImageUpload value={imageUrl} onChange={setImageUrl} />
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="name">{en ? "Your name" : "اسمك"}</Label>
-            <Input
-              id="name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder={en ? "e.g. Ahmed Mohamed" : "مثال: أحمد محمد"}
-            />
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="name">{en ? "Your name" : "اسمك"}</Label>
+              <Input
+                id="name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder={en ? "e.g. Ahmed Mohamed" : "مثال: أحمد محمد"}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="display_title">
+                {en ? "Title under your name (optional)" : "المسمّى تحت اسمك (اختياري)"}
+              </Label>
+              <Input
+                id="display_title"
+                value={displayTitle}
+                onChange={(e) => setDisplayTitle(e.target.value)}
+                placeholder={en ? "e.g. Content Writer" : "مثال: كاتبة محتوى"}
+              />
+              <p className="text-xs text-muted-foreground">
+                {en
+                  ? "Shown on your public card instead of your role. Leave empty to show your role."
+                  : "يظهر في بطاقتك العامة بدل الدور. اتركه فارغًا لعرض دورك."}
+              </p>
+            </div>
           </div>
         </div>
       </div>

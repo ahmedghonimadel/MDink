@@ -60,11 +60,19 @@ export function TeamMemberCard({
 
       {member.is_founder && (
         <span className="relative mt-1 inline-block rounded-full gradient-hero px-3 py-1 text-xs font-bold text-brand-foreground shadow-brand">
-          {locale === "en" ? "✦ Founder of MDink Solutions" : "✦ مؤسِّس MDink Solutions"}
+          {/* مسمّى مخصص يحل محل "مؤسِّس MDink Solutions" إن وُجد */}
+          {member.role_title
+            ? member.role_title
+            : locale === "en"
+              ? "✦ Founder of MDink Solutions"
+              : "✦ مؤسِّس MDink Solutions"}
         </span>
       )}
 
-      {member.role_keys && member.role_keys.length ? (
+      {/* المسمّى المخصص (لغير المؤسِّس) يحل محل شارات الأدوار */}
+      {!member.is_founder && member.role_title ? (
+        <p className="relative mt-2 text-sm font-medium text-brand">{member.role_title}</p>
+      ) : !member.is_founder && member.role_keys && member.role_keys.length ? (
         <div className="relative mt-3 flex flex-wrap justify-center gap-1.5">
           {member.role_keys.map((rk) => (
             <span
@@ -75,7 +83,7 @@ export function TeamMemberCard({
             </span>
           ))}
         </div>
-      ) : role ? (
+      ) : !member.is_founder && role ? (
         <p className="relative mt-2 text-sm font-medium text-brand">{role}</p>
       ) : null}
 

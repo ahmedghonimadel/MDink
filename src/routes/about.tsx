@@ -147,8 +147,42 @@ function AboutPage() {
   });
 
   const { data: team = [] } = useQuery({
-    queryKey: ["public-team-v3"],
-    queryFn: async () => {
+    queryKey: ["public-team-v4"],
+    queryFn: async (): Promise<TeamMember[]> => {
+      // المصدر الأساسي: بروفايلات الفريق المعتمدة (يملأها الأعضاء ويوافق عليها الأدمن)
+      const profs =
+        (
+          await db
+            .from("team_profiles")
+            .select("*")
+            .eq("show_in_public_team", true)
+            .eq("public_approved", true)
+            .eq("account_status", "active")
+        ).data ?? [];
+      if (profs.length) {
+        return profs
+          .map((p: any) => ({
+            id: p.id,
+            name_ar: p.name_ar,
+            name_en: p.name_en,
+            image_url: p.image_url,
+            role_title: p.display_title || undefined,
+            role_keys: p.primary_display_role
+              ? [p.primary_display_role]
+              : Array.isArray(p.roles)
+                ? p.roles
+                : [],
+            bio_ar: p.bio_ar,
+            bio_en: p.bio_ar,
+            is_founder: p.is_founder,
+            _order: p.sort_order ?? 999,
+          }))
+          .sort(
+            (a: any, b: any) =>
+              (b.is_founder ? 1 : 0) - (a.is_founder ? 1 : 0) || a._order - b._order,
+          );
+      }
+      // احتياطي: الجدول القديم team_members حتى لا تفرغ الصفحة قبل اعتماد البروفايلات
       const rows =
         (await db.from("team_members").select("*").eq("is_visible", true).order("sort_order")).data ??
         [];

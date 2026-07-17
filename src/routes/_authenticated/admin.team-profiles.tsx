@@ -1,11 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Eye, EyeOff, Ban, UserCheck, Download } from "lucide-react";
+import { Eye, EyeOff, Ban, UserCheck, Download, Pencil, Save, X, Check } from "lucide-react";
 import { requireSuperAdmin } from "@/lib/admin";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { roleLabel } from "@/lib/roles";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { ImageUpload } from "@/components/ImageUpload";
+import { ALL_ROLES, roleLabel, type RoleKey } from "@/lib/roles";
 import { exportTableAsExcel } from "@/lib/export";
 
 export const Route = createFileRoute("/_authenticated/admin/team-profiles")({
@@ -55,6 +60,48 @@ function TeamProfilesAdmin() {
     if (error) return toast.error(error.message);
     qc.invalidateQueries({ queryKey: ["admin-team-profiles"] });
     qc.invalidateQueries({ queryKey: ["public-team-members"] });
+  }
+
+  // تعديل بيانات البروفايل من الأدمن
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [ef, setEf] = useState<any>({});
+  function startEdit(p: any) {
+    setEditingId(p.id);
+    setEf({
+      name_ar: p.name_ar || "",
+      display_title: p.display_title || "",
+      image_url: p.image_url || "",
+      bio_ar: p.bio_ar || "",
+      roles: Array.isArray(p.roles) ? p.roles : [],
+    });
+  }
+  function cancelEdit() {
+    setEditingId(null);
+    setEf({});
+  }
+  function toggleEfRole(k: RoleKey) {
+    setEf((s: any) => ({
+      ...s,
+      roles: s.roles.includes(k) ? s.roles.filter((r: string) => r !== k) : [...s.roles, k],
+    }));
+  }
+  async function saveEdit(id: string) {
+    const { error } = await db
+      .from("team_profiles")
+      .update({
+        name_ar: ef.name_ar?.trim() || null,
+        name_en: ef.name_ar?.trim() || null,
+        display_title: ef.display_title?.trim() || null,
+        image_url: ef.image_url || null,
+        bio_ar: ef.bio_ar?.trim() || null,
+        roles: ef.roles,
+      })
+      .eq("id", id);
+    if (error) return toast.error(error.message);
+    toast.success("تم حفظ التعديل ✓");
+    cancelEdit();
+    qc.invalidateQueries({ queryKey: ["admin-team-profiles"] });
+    qc.invalidateQueries({ queryKey: ["public-team-v4"] });
   }
 
   function exportProfiles() {
@@ -147,6 +194,80 @@ function TeamProfilesAdmin() {
               </span>
             </div>
 
+            {editingId === p.id ? (
+              <div className="mt-4 grid gap-3 rounded-xl border border-brand/30 bg-brand/5 p-4">
+                <div className="grid gap-3 sm:grid-cols-[140px_1fr]">
+                  <div>
+                    <Label className="mb-1 block text-xs">الصورة</Label>
+                    <ImageUpload
+                      label=""
+                      value={ef.image_url}
+                      onChange={(v) => setEf((s: any) => ({ ...s, image_url: v }))}
+                      folder="team"
+                    />
+                  </div>
+                  <div className="space-y-3">
+                    <div>
+                      <Label className="text-xs">الاسم</Label>
+                      <Input
+                        className="mt-1"
+                        value={ef.name_ar}
+                        onChange={(e) => setEf((s: any) => ({ ...s, name_ar: e.target.value }))}
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-xs">المسمّى تحت الاسم (اختياري — يحل محل الدور/المؤسِّس)</Label>
+                      <Input
+                        className="mt-1"
+                        placeholder="مثال: كاتبة محتوى"
+                        value={ef.display_title}
+                        onChange={(e) => setEf((s: any) => ({ ...s, display_title: e.target.value }))}
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <Label className="text-xs">الأدوار</Label>
+                  <div className="mt-1 flex flex-wrap gap-2">
+                    {ALL_ROLES.map((r) => {
+                      const on = ef.roles?.includes(r.key);
+                      return (
+                        <button
+                          key={r.key}
+                          type="button"
+                          onClick={() => toggleEfRole(r.key)}
+                          className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs transition-colors ${on ? "border-brand bg-brand/10 text-brand" : "border-border hover:border-brand/40"}`}
+                        >
+                          {on ? <Check className="h-3 w-3" /> : null} {r.label_ar}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+                <div>
+                  <Label className="text-xs">نبذة (اختياري)</Label>
+                  <Textarea
+                    className="mt-1"
+                    rows={2}
+                    value={ef.bio_ar}
+                    onChange={(e) => setEf((s: any) => ({ ...s, bio_ar: e.target.value }))}
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    onClick={() => saveEdit(p.id)}
+                    className="gradient-hero text-brand-foreground"
+                  >
+                    <Save className="ml-1 h-4 w-4" /> حفظ
+                  </Button>
+                  <Button size="sm" variant="ghost" onClick={cancelEdit}>
+                    <X className="ml-1 h-4 w-4" /> إلغاء
+                  </Button>
+                </div>
+              </div>
+            ) : null}
+
             {p.medical_specialty || p.years_experience || p.bio_ar ? (
               <div className="mt-3 grid gap-1 text-sm text-muted-foreground">
                 {p.medical_specialty ? (
@@ -177,6 +298,9 @@ function TeamProfilesAdmin() {
             ) : null}
 
             <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-border pt-4">
+              <Button size="sm" variant="outline" onClick={() => startEdit(p)}>
+                <Pencil className="ml-1 h-4 w-4" /> تعديل
+              </Button>
               {p.cv_url ? (
                 <Button asChild size="sm" variant="outline">
                   <a href={p.cv_url} target="_blank" rel="noreferrer">
